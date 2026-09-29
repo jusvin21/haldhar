@@ -690,25 +690,28 @@ footer{margin-top:60px; padding-top:20px; border-top:1px solid var(--line); colo
 <section>
   <div class="sec-head">
     <p class="eyebrow">Section 09</p>
-    <h2>Connecting Python to the board</h2>
+    <h2>The Python side</h2>
     <p>Whatever COM number the board ends up on, it follows the USB socket rather than the board. Match on the chip ID instead &mdash; and note that a hardcoded <span class="mono">COM6</span> on this machine lands on Bluetooth.</p>
   </div>
   <div class="tscroll">
     <table>
       <thead><tr><th>File</th><th>Needs</th><th>What it does</th></tr></thead>
       <tbody>
-        <tr><td class="tp">hardware_test.py</td><td class="m">pyserial only</td><td><b>Run this first.</b> No camera, no mediapipe. Walks the board through every state and prints what it replies, then proves the failsafe by going quiet.</td></tr>
-        <tr><td class="tp">alertride.py</td><td class="m">full stack</td><td>The real thing: webcam &rarr; EAR &rarr; state machine &rarr; serial. Runs camera-only if the board is unplugged, so you can work on either half alone.</td></tr>
+        <tr><td class="tp">tests/test_logic.py</td><td class="m">nothing</td><td><b>Run this first.</b> 12 tests for the EAR maths and the state machine. No camera, no board, about two seconds.</td></tr>
+        <tr><td class="tp">hardware_test.py</td><td class="m">pyserial only</td><td><b>Then this.</b> No camera. Walks the board through every state and prints what it replies, then proves the failsafe by going quiet. <span class="mono">--sim</span> runs it against a software ESP32 with no hardware at all.</td></tr>
+        <tr><td class="tp">esp32_sim.py</td><td class="m">nothing</td><td>A software stand-in for the board, mirroring the firmware. Lets the whole Python side be built and demonstrated with nothing plugged in.</td></tr>
+        <tr><td class="tp">core.py</td><td class="m">pyserial</td><td>EAR, state machine and serial link, with no camera or GUI imports &mdash; which is what makes them testable.</td></tr>
+        <tr><td class="tp">alertride.py</td><td class="m">full stack</td><td>The real thing: webcam &rarr; EAR &rarr; state machine &rarr; serial, plus the live dashboard. Runs camera-only if the board is unplugged, so you can work on either half alone.</td></tr>
+        <tr><td class="tp">dashboard.html</td><td class="m">a browser</td><td>Live EAR trace, state, board link and event log at <span class="mono">127.0.0.1:8000</span>. Served by <span class="mono">alertride.py</span>; do not open it directly.</td></tr>
         <tr><td class="tp">face_landmarker.task</td><td class="m">3.76 MB</td><td>The face-mesh model. Must sit in the same folder as <span class="mono">alertride.py</span>.</td></tr>
-        <tr class="dim"><td class="tp">drowsiness_test.py</td><td class="m">&mdash;</td><td>Your original. Superseded &mdash; kept as reference for the EAR maths.</td></tr>
-        <tr class="dim"><td class="tp">face_test.py</td><td class="m">&mdash;</td><td>Your original landmark viewer. Superseded.</td></tr>
       </tbody>
     </table>
   </div>
   <div class="warn" style="margin-top:16px">
     <p><strong>Three things were wrong before any of this could run.</strong></p>
     <p><b>1. OpenCV could not open a window.</b> The installed build was <span class="mono">opencv-python-headless</span>, which ships without GUI support, so every <span class="mono">cv2.imshow()</span> call raised <em>&ldquo;The function is not implemented&rdquo;</em>. Replaced with a full build.</p>
-    <p><b>2. mediapipe was not installed at all</b>, and the legacy <span class="mono">mp.solutions.face_mesh</span> API both original scripts use is not built for Python 3.14 at any version. <span class="mono">alertride.py</span> uses the current <span class="mono">FaceLandmarker</span> task API instead. Your EAR function and all twelve eye landmark indices are unchanged &mdash; the 478-point mesh has the same topology, so only the capture wrapper differs.</p>
+    <p><b>2. The legacy <span class="mono">mp.solutions.face_mesh</span> API both original scripts use no longer exists.</b> Not "unavailable on your Python version" &mdash; mediapipe 1.x removed <span class="mono">mp.solutions</span> outright, so <span class="mono">hasattr(mediapipe, "solutions")</span> is now <span class="mono">False</span> on every interpreter. <span class="mono">alertride.py</span> uses the supported <span class="mono">FaceLandmarker</span> Tasks API instead. Your EAR function and all twelve eye landmark indices are unchanged &mdash; the 478-point mesh has the same topology, so only the capture wrapper differs.</p>
+    <p><b>And you do not need to downgrade Python.</b> Checked against PyPI: the Windows wheels are <span class="mono">mediapipe-1.0.1-py3-none-win_amd64</span> (no version restriction at all) and <span class="mono">opencv_python-5.0.0.93-cp37-abi3-win_amd64</span> (stable ABI, any CPython 3.7+). Both install on 3.12, 3.13 and 3.14 alike. Installing 3.12 is a fallback if something version-specific bites, not a prerequisite.</p>
     <p><b>3. A state-name mismatch silently disabled the warning stage.</b> <span class="mono">drowsiness_test.py</span> assigns <span class="mono">"BEEP"</span> and <span class="mono">"ALARM+VIBRATION"</span>, but its colour block tests for <span class="mono">"WARNING"</span> and <span class="mono">"DROWSY"</span>. Neither ever matched, so both fell through to the magenta <em>no-face</em> branch. Fixed by using one set of names everywhere, matching the firmware protocol.</p>
   </div>
   <div class="warn" style="margin-top:16px">
@@ -733,8 +736,9 @@ footer{margin-top:60px; padding-top:20px; border-top:1px solid var(--line); colo
     <li><b>Build the motor stage dry</b> &mdash; R4, R5, Q2, D1, M1, W8, W9, W10, W11, and C1 if you have one. <b>Leave W13 out.</b> With no 5 V on the rail nothing can move yet, which is the point: check D1&rsquo;s band is at row 40, C1&rsquo;s stripe is on the &minus; rail, and Q2 reads G-D-S into rows 33-34-35.</li>
     <li><b>Fit W13</b> from (62, j) to the + rail. This is the moment 5 V enters the board. The motor must be still &mdash; if it runs the instant you seat this wire, pull it out immediately and check R5 and Q2&rsquo;s orientation.</li>
     <li><b>Test the motor</b> &mdash; send <span class="mono">W</span> for a short pulse, <span class="mono">D</span> for continuous, <span class="mono">S</span> to stop. If the board reprints <span class="mono">AlertRide ready</span> when the motor starts, the 5 V rail is browning out &mdash; see &ldquo;If you don&rsquo;t have a capacitor&rdquo; in Section&nbsp;04b.</li>
+    <li><b>Run <span class="mono">python tests/test_logic.py</span>, then <span class="mono">python hardware_test.py --sim</span>.</b> Both run with nothing plugged in. If either fails, the problem is the code, not your wiring &mdash; fix it before touching the board.</li>
     <li><b>Close the Serial Monitor and run <span class="mono">hardware_test.py</span>.</b> It drives every state for you and prints what the board replies, including the <span class="mono">LINK_LOST</span> failsafe. This is the whole hardware check in one command &mdash; no camera involved.</li>
-    <li><b>Run <span class="mono">alertride.py</span>.</b> Test in this order: eyes open, one normal blink, a deliberate 1-second closure, a 3-second closure, then cover the camera entirely.</li>
+    <li><b>Run <span class="mono">alertride.py</span>.</b> The dashboard opens at <span class="mono">127.0.0.1:8000</span>. Test in this order: eyes open, one normal blink, a deliberate 1-second closure, a 3-second closure, then cover the camera entirely.</li>
     <li><b>Calibrate the threshold.</b> Watch the on-screen EAR with your eyes open and then shut, and set <span class="mono">EAR_THRESHOLD</span> midway between the two. The default 0.25 is a starting point, not a correct value for your face, glasses or lighting.</li>
     <li><b>Log the run</b> &mdash; trials, false alarms, missed detections, lighting, glasses on or off. Stationary only, and never in a moving vehicle.</li>
     <li><b>Tape the motor to something.</b> A loose vibration motor walks off the bench and drags the breadboard wires out with it. Tape it to the desk, or to whatever you are demonstrating it against.</li>

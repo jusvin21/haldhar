@@ -1,0 +1,11 @@
+# AlertRide Python side.  Install with:  pip install -r requirements.txt
+#
+# All four ship ABI-agnostic Windows wheels, so any Python 3.9+ works and
+# there is no need to downgrade the interpreter. Verified against these
+# versions on 2026-09-29.
+
+mediapipe>=1.0          # face mesh. 1.x REMOVED mp.solutions - Tasks API only
+opencv-python>=4.8      # NOT opencv-python-headless: that build has no GUI,
+                        # so cv2.imshow() raises "The function is not implemented"
+numpy>=1.24
+pyserial>=3.5           # talks to the ESP32
