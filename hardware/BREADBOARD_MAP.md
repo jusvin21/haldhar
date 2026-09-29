@@ -178,7 +178,7 @@ touches a GPIO.
 | M1 motor − | (34, f) |
 | M1 motor + | (40, f) |
 | W11 jumper | (40, j) → + rail @ 40 |
-| C1 100 µF | + rail @ 42 / − rail @ 42 |
+| C1 100 µF *(optional)* | + rail @ 42 / − rail @ 42 |
 | W13 jumper | (62, j) 5V → + rail @ 62 |
 
 ---
@@ -238,7 +238,7 @@ crowded end.
 | Q2 | IRLZ44N MOSFET | (33,i) (34,i) (35,i) | — | TO-220, tab toward row 63 — G D S |
 | D1 | 1N4007 flyback | (34, h) anode | (40, h) cathode | **Banded end at row 40**, the + side |
 | M1 | Vibration motor 5 V | (34, f) − | (40, f) + | Usually red = +, black = − |
-| C1 | 100 µF electrolytic | + rail @ 42 | − rail @ 42 | **Stripe leg is −** — backwards it can vent |
+| C1 | 100 µF electrolytic — **optional** | + rail @ 42 | − rail @ 42 | **Stripe leg is −** — backwards it can vent |
 
 ### Q1 leg order flips between the two parts you may have
 Hold it flat-face toward you, legs down, read left to right:
@@ -301,14 +301,46 @@ Motor inrush sags the 5 V rail. Sag far enough and the ESP32 resets — the
 alert device reboots at the exact moment it is supposed to be alerting,
 and nothing on screen tells you it happened.
 
-**C1, 100 µF across the bottom rails at position 42, is the fix.** It
-supplies the inrush locally so the rail does not dip. Not optional; Rev A
-had no bulk capacitance because it had no motor. Stripe leg (−) to the
-− rail.
+**C1, 100 µF across the bottom rails at position 42, is the fix** when
+you have one. It supplies the inrush locally so the rail does not dip.
+Stripe leg (−) to the − rail.
 
 **Symptom to watch for:** if the board prints `AlertRide ready` again in
-the middle of a DROWSY test, that is a reset, not a glitch. Check C1 is
-seated and its polarity is right.
+the middle of a DROWSY test, that is a reset, not a glitch.
+
+### If you don't have a capacitor
+
+Build and test anyway. Nothing is damaged by the sag — the worst case is
+a reset, which is visible and harmless. **C1 is insurance against a
+failure that may not happen with your motor**, not a prerequisite. Steps
+1–7 of bring-up don't involve the motor at all.
+
+Test for the symptom first: send `D`, let the motor run ten seconds, and
+watch the Serial Monitor. No `AlertRide ready` reprint means the rail is
+holding and you need nothing.
+
+If it does reset, work through these in order — cheapest first:
+
+1. **Change USB port and cable.** A short, thick cable into a rear or
+   motherboard port, never a hub or an unpowered front-panel header.
+   Cable and connector resistance is usually the single biggest
+   contributor to the sag, and this costs nothing to try.
+2. **Turn on soft-start.** Set `MOTOR_SOFT_START = true` in the sketch.
+   It ramps the motor up over ~25 ms with a software PWM instead of
+   switching it on in one step, spreading the inrush thin enough that the
+   rail usually holds. It deliberately avoids the ESP32's LEDC
+   peripheral, which `tone()` is already using for the buzzer, so it
+   cannot break the buzzer stage.
+3. **Shorten the motor leads**, and keep W11 and W13 short.
+4. **Scavenge a capacitor.** Any electrolytic between 47 µF and 1000 µF
+   rated 6.3 V or higher works. They are the small cylinders with a
+   stripe down one side, and they are in nearly every piece of dead
+   electronics: an old router, a phone charger, a PC power supply, an LED
+   bulb base, an old motherboard. Arduino starter kits usually include a
+   few.
+
+Soft-start is a workaround, not a substitute. Fit a capacitor when you
+have one and set the flag back to `false`.
 
 ### Current budget
 
@@ -406,7 +438,8 @@ something fails, you know what caused it.
 7. **Buzzer stage** — R3, Q1, BZ1, W5, W6, W7. `W` = short beep, `D` =
    steady tone, `S` = silence. Constant buzz regardless of command means
    Q1 is in backwards.
-8. **Motor stage, dry** — R4, R5, Q2, D1, M1, W8, W9, W10, W11, C1.
+8. **Motor stage, dry** — R4, R5, Q2, D1, M1, W8, W9, W10, W11, and C1
+   if you have one.
    **Leave W13 out.** With no 5 V on the rail nothing can move yet, which
    is the point: check D1's band is at row 40, C1's stripe is on the −
    rail, and Q2 reads G-D-S into rows 33-34-35.
@@ -415,7 +448,8 @@ something fails, you know what caused it.
    this wire, pull it out and check R5 and Q2's orientation.
 10. **Test the motor** — `W` for a pulse, `D` for continuous, `S` to stop.
     If the board reprints `AlertRide ready` when the motor starts, the
-    5 V rail is browning out: check C1, then measure stall current.
+    5 V rail is browning out — see "If you don't have a capacitor" in
+    section 6.
 11. **Close the Serial Monitor**, run the hardware test script. It drives
     every state and prints the replies, including the LINK_LOST failsafe.
     Whole hardware check in one command, no camera.
