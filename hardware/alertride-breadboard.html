@@ -1,0 +1,994 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>AlertRide Breadboard Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;450;500;600&display=swap">
+<style>
+:root{
+  --ground:#EBEEF1; --surface:#FFFFFF; --surface-2:#F4F6F8; --sunk:#E2E7EB;
+  --ink:#121920; --ink-2:#3C4855; --ink-3:#6C7A88;
+  --line:#D2D9E0; --line-2:#B0BBC5;
+  --pos:#BE3A2E; --neg:#2A5FA6; --signal:#B5720A; --ok:#26804E; --crit:#A82E26;
+  --board:#E6E3DA; --board-edge:#CFCBBF; --hole:#B5B1A4; --hole-live:#8E8A7C;
+  --chip:#1B2027; --chip-edge:#0B0E12; --silk:#C9CFD6;
+  --z-awake:#26804E; --z-warn:#BE3A2E; --z-buzz:#B5720A; --z-motor:#2A5FA6;
+  --z-gnd:#4A5560; --z-33:#9A5B12; --z-pwr:#BE3A2E;
+  --shadow:0 1px 2px rgba(18,25,32,.05),0 6px 18px -10px rgba(18,25,32,.22);
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){
+  --ground:#0D1217; --surface:#151C23; --surface-2:#1B242C; --sunk:#10171D;
+  --ink:#E4EAF0; --ink-2:#A7B4C0; --ink-3:#71808D;
+  --line:#26313A; --line-2:#3A4855;
+  --pos:#E2695C; --neg:#5FA0E4; --signal:#EFAB33; --ok:#48B97B; --crit:#E07064;
+  --board:#2B2B26; --board-edge:#3D3D36; --hole:#56564D; --hole-live:#7A7A6E;
+  --chip:#080B0E; --chip-edge:#000; --silk:#8894A0;
+  --z-awake:#48B97B; --z-warn:#E2695C; --z-buzz:#EFAB33; --z-motor:#5FA0E4;
+  --z-gnd:#8A97A3; --z-33:#E0942F; --z-pwr:#E2695C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px -12px rgba(0,0,0,.7);
+}}
+:root[data-theme="dark"]{
+  --ground:#0D1217; --surface:#151C23; --surface-2:#1B242C; --sunk:#10171D;
+  --ink:#E4EAF0; --ink-2:#A7B4C0; --ink-3:#71808D;
+  --line:#26313A; --line-2:#3A4855;
+  --pos:#E2695C; --neg:#5FA0E4; --signal:#EFAB33; --ok:#48B97B; --crit:#E07064;
+  --board:#2B2B26; --board-edge:#3D3D36; --hole:#56564D; --hole-live:#7A7A6E;
+  --chip:#080B0E; --chip-edge:#000; --silk:#8894A0;
+  --z-awake:#48B97B; --z-warn:#E2695C; --z-buzz:#EFAB33; --z-motor:#5FA0E4;
+  --z-gnd:#8A97A3; --z-33:#E0942F; --z-pwr:#E2695C;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 22px -12px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px; margin:0 auto; padding-inline:20px; padding-block:0 72px;}
+h1,h2,h3{font-family:"Archivo Narrow","Arial Narrow",sans-serif; text-wrap:balance; margin:0; letter-spacing:.005em;}
+h1{font-size:clamp(34px,6vw,54px); font-weight:700; line-height:1.02;}
+h2{font-size:clamp(21px,3vw,27px); font-weight:700; line-height:1.15;}
+h3{font-size:16px; font-weight:600; line-height:1.25;}
+p{margin:0}
+code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums;}
+
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:500;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3);
+}
+
+/* ---------- masthead ---------- */
+header.mast{
+  border-bottom:2px solid var(--ink); padding-block:34px 20px;
+  display:flex; flex-direction:column; gap:18px;
+}
+.mast-top{display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap;}
+.mast-meta{display:flex; flex-direction:column; gap:3px; text-align:right;}
+.mast-meta .mono{font-size:12px; color:var(--ink-2);}
+.lede{max-width:62ch; color:var(--ink-2); font-size:16.5px;}
+.mast-rule{display:flex; gap:0; height:6px; border-radius:2px; overflow:hidden;}
+.mast-rule i{flex:1}
+
+/* ---------- alert ---------- */
+.alert{
+  margin-top:26px; background:var(--surface); border:1px solid var(--line);
+  border-left:4px solid var(--crit); border-radius:3px; padding:18px 20px;
+  display:flex; flex-direction:column; gap:12px; box-shadow:var(--shadow);
+}
+.alert-head{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap;}
+.alert h3{color:var(--crit)}
+.alert.ok{border-left-color:var(--ok)}
+.alert.ok h3{color:var(--ok)}
+.alert.ok .codechip{color:var(--ok); border-color:color-mix(in srgb,var(--ok) 40%,transparent);}
+.port{font-family:"Archivo Narrow",sans-serif; font-size:26px; font-weight:700; color:var(--ok); letter-spacing:.02em;}
+.codechip{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600;
+  background:var(--sunk); color:var(--ink-2); padding:2px 7px; border-radius:2px;
+  border:1px solid var(--line);
+}
+.alert ol{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:7px; color:var(--ink-2); font-size:14.5px;}
+.alert a{color:var(--neg)}
+
+section{margin-top:56px}
+.sec-head{display:flex; flex-direction:column; gap:7px; margin-bottom:20px; border-bottom:1px solid var(--line); padding-bottom:12px;}
+.sec-head p{color:var(--ink-3); font-size:14.5px; max-width:70ch;}
+
+/* ---------- status strip ---------- */
+.strip{display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); border-radius:3px; overflow:hidden;}
+.strip div{background:var(--surface); padding:13px 15px; display:flex; flex-direction:column; gap:4px;}
+.strip .k{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);}
+.strip .v{font-family:"Archivo Narrow",sans-serif; font-size:19px; font-weight:600;}
+.strip .v.bad{color:var(--crit)} .strip .v.good{color:var(--ok)}
+.strip .n{font-size:12px; color:var(--ink-3); line-height:1.4;}
+
+/* ---------- board figure ---------- */
+.figure{background:var(--surface); border:1px solid var(--line); border-radius:3px; box-shadow:var(--shadow); overflow:hidden;}
+.figscroll{overflow-x:auto; padding:18px 18px 8px;}
+.figscroll svg{display:block}
+.figcap{border-top:1px solid var(--line); padding:12px 18px; font-size:12.5px; color:var(--ink-3); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+.legend{display:flex; flex-wrap:wrap; gap:6px 16px; padding:14px 18px; border-top:1px solid var(--line); background:var(--surface-2);}
+.legend span{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-2); font-family:"IBM Plex Mono",monospace;}
+.legend i{width:11px; height:11px; border-radius:2px; flex:none;}
+
+/* ---------- tables ---------- */
+.tscroll{overflow-x:auto; border:1px solid var(--line); border-radius:3px; background:var(--surface);}
+table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:560px;}
+th,td{text-align:left; padding:9px 13px; border-bottom:1px solid var(--line); vertical-align:top;}
+thead th{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3); background:var(--surface-2);
+  border-bottom:1px solid var(--line-2); white-space:nowrap; font-weight:500;
+}
+tbody tr:last-child td{border-bottom:none}
+td.tp{font-family:"IBM Plex Mono",monospace; font-weight:600; white-space:nowrap; font-variant-numeric:tabular-nums;}
+td.m{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap;}
+.dot{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:7px; vertical-align:baseline; flex:none;}
+tr.dim td{color:var(--ink-3); background:var(--surface-2);}
+tr.dim td.tp{color:var(--ink-3)}
+.tag{font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600; padding:1px 6px; border-radius:2px; white-space:nowrap; border:1px solid;}
+.tag.use{color:var(--ok); border-color:color-mix(in srgb,var(--ok) 40%,transparent); background:color-mix(in srgb,var(--ok) 9%,transparent);}
+.tag.no{color:var(--crit); border-color:color-mix(in srgb,var(--crit) 40%,transparent); background:color-mix(in srgb,var(--crit) 9%,transparent);}
+.tag.free{color:var(--ink-3); border-color:var(--line-2);}
+
+/* ---------- bands ---------- */
+.bands{display:inline-flex; gap:2px; align-items:center; vertical-align:middle; margin-right:8px; padding:2px 3px; background:#D8C9A8; border-radius:2px;}
+.bands i{width:4px; height:14px; border-radius:1px;}
+
+/* ---------- zone cards ---------- */
+.zones{display:grid; grid-template-columns:repeat(auto-fit,minmax(252px,1fr)); gap:16px;}
+.zone{background:var(--surface); border:1px solid var(--line); border-top:3px solid var(--zc); border-radius:3px; padding:16px 17px; display:flex; flex-direction:column; gap:11px;}
+.zone-h{display:flex; align-items:baseline; justify-content:space-between; gap:10px;}
+.zone-h .gpio{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; color:var(--zc);}
+.zone ul{margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:6px; font-size:13px;}
+.zone li{display:flex; gap:9px; align-items:baseline;}
+.zone li b{font-family:"IBM Plex Mono",monospace; font-weight:600; color:var(--ink); flex:none; min-width:74px;}
+.zone li span{color:var(--ink-2)}
+
+/* ---------- warn boxes ---------- */
+.warn{background:var(--surface-2); border:1px solid var(--line); border-left:3px solid var(--signal); border-radius:3px; padding:14px 16px; display:flex; flex-direction:column; gap:8px;}
+.warn p{font-size:14px; color:var(--ink-2)}
+.warn strong{color:var(--ink)}
+.grid2{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:16px;}
+
+/* ---------- code ---------- */
+.codeblock{background:var(--sunk); border:1px solid var(--line); border-radius:3px; overflow:hidden;}
+.codeblock header{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:9px 14px; border-bottom:1px solid var(--line); background:var(--surface-2); flex-wrap:wrap;}
+.codeblock header .fn{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600;}
+.codeblock header .lang{font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3);}
+.codeblock pre{margin:0; padding:15px; overflow-x:auto; font-family:"IBM Plex Mono",monospace; font-size:12.5px; line-height:1.62; color:var(--ink-2);}
+.codeblock pre b{color:var(--ink); font-weight:600;}
+.codeblock pre i{color:var(--ink-3); font-style:normal;}
+
+/* ---------- checklist ---------- */
+ol.steps{margin:0; padding:0; list-style:none; counter-reset:s; display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:3px; overflow:hidden;}
+ol.steps li{counter-increment:s; background:var(--surface); padding:12px 16px 12px 52px; position:relative; font-size:14px; color:var(--ink-2);}
+ol.steps li::before{
+  content:counter(s,decimal-leading-zero); position:absolute; left:16px; top:12px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600; color:var(--ink-3);
+}
+ol.steps li b{color:var(--ink); font-weight:600;}
+
+footer{margin-top:60px; padding-top:20px; border-top:1px solid var(--line); color:var(--ink-3); font-size:12.5px; display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;}
+
+@media (max-width:560px){
+  .mast-meta{text-align:left}
+  .figcap{flex-direction:column; gap:6px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="mast-top">
+    <div>
+      <p class="eyebrow">AlertRide &nbsp;/&nbsp; Hardware build sheet &nbsp;/&nbsp; Rev B</p>
+      <h1>Breadboard Map<br>&amp; ESP32 Configuration</h1>
+    </div>
+    <div class="mast-meta">
+      <span class="eyebrow">Target</span>
+      <span class="mono">ESP32-WROOM-32 DevKit, 38-pin</span>
+      <span class="mono">Rows 44&ndash;62, straddling centre gap</span>
+      <span class="mono">Mirrored pinout &middot; GND at (44, b)</span>
+      <span class="mono">LED + buzzer + 5&nbsp;V motor</span>
+      <span class="mono">USB powered &middot; no external pack</span>
+    </div>
+  </div>
+  <p class="lede">Every tie-point for the alert-output stage &mdash; a green status LED, a red alert LED, and a transistor-switched buzzer &mdash; given as exact <span class="mono">(row, column)</span> coordinates you can push parts into without guessing. Built around the pin order printed on your own module, which runs mirrored to the reference layout. <b>Rev&nbsp;B adds the 5&nbsp;V vibration motor back</b>, switched by a logic-level MOSFET and fed from the board&rsquo;s own <span class="mono">5V/VIN</span> pin &mdash; one supply, one ground, no battery pack.</p>
+  <div class="mast-rule">
+    <i style="background:var(--z-awake)"></i><i style="background:var(--z-warn)"></i><i style="background:var(--z-buzz)"></i><i style="background:var(--z-motor)"></i><i style="background:var(--z-pwr)"></i><i style="background:var(--z-33)"></i><i style="background:var(--z-gnd)"></i>
+  </div>
+</header>
+
+<div class="alert">
+  <div class="alert-head">
+    <h3>Confirm the serial port before you wire anything</h3>
+    <span class="codechip">Unverified &middot; check Device Manager</span>
+  </div>
+  <p style="color:var(--ink-2); font-size:14.5px;">Two conflicting readings exist for this machine &mdash; one says the CP210x driver is bound and the board holds a COM number, the other says Device Manager reports <span class="mono">error&nbsp;code&nbsp;28</span> on it. Both cannot be true. Open <b>Device Manager &rarr; Ports (COM&nbsp;&amp;&nbsp;LPT)</b> and settle it before anything else.</p>
+  <ol>
+    <li><b>Driver bound</b> &rarr; the board shows as <span class="mono">Silicon Labs CP210x USB to UART Bridge (COMn)</span> on <span class="mono">VID_10C4 / PID_EA60</span>. Use that number in Arduino IDE.</li>
+    <li><b>Error code 28</b> &rarr; no driver, therefore <em>no COM port exists at all</em>. Install the Silicon Labs CP210x VCP driver, replug, re-check.</li>
+    <li><b>The number is not permanent.</b> Windows assigns it per USB socket &mdash; move the cable and it changes. That is why the Python matches on the chip&rsquo;s <span class="mono">VID/PID</span> instead of a hardcoded string.</li>
+    <li><b>Never use COM6 here.</b> <span class="mono">COM3</span>&ndash;<span class="mono">COM6</span> on this machine are all <em>Standard Serial over Bluetooth link</em>. The <span class="mono">PORT = "COM6"</span> line in your original notes would open a Bluetooth channel, not the board, and hang without an error.</li>
+    <li>Only one process can hold the port. Close the Arduino Serial Monitor before running Python, or PySerial raises <span class="mono">PermissionError</span>.</li>
+  </ol>
+</div>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 01</p>
+    <h2>Board state, as detected</h2>
+    <p>Read live from this machine, not assumed.</p>
+  </div>
+  <div class="strip">
+    <div><span class="k">USB bridge</span><span class="v good">Detected</span><span class="n">CP2102, VID 10C4 / PID EA60</span></div>
+    <div><span class="k">Driver</span><span class="v bad">Unconfirmed</span><span class="n">Code 28 vs. bound &mdash; check first</span></div>
+    <div><span class="k">Assigned port</span><span class="v bad">Verify</span><span class="n">COM3&ndash;6 are Bluetooth, not the board</span></div>
+    <div><span class="k">Baud</span><span class="v">115200</span><span class="n">Matches your firmware and Python</span></div>
+    <div><span class="k">Logic level</span><span class="v">3.3 V</span><span class="n">Every GPIO; no 5 V reaches one</span></div>
+    <div><span class="k">Power</span><span class="v good">USB only</span><span class="n">5 V rail tapped from VIN, pin row 62</span></div>
+    <div><span class="k">Outputs</span><span class="v">4</span><span class="n">Green LED, red LED, buzzer, motor</span></div>
+    <div><span class="k">Current budget</span><span class="v">~300 mA</span><span class="n">Worst case, against USB&rsquo;s 500 mA</span></div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 02</p>
+    <h2>Where the ESP32 sits</h2>
+    <p>Rows 44 to 62, as specified. That is 19 rows, which is exactly the pin count per side on a 38-pin DevKit &mdash; one pin per row, each electrically isolated from its neighbour by the centre gap.</p>
+  </div>
+  <div class="grid2">
+    <div class="warn">
+      <p><strong>Left header &rarr; column b, rows 44&ndash;62.</strong> Reachable from column <span class="mono">a</span>. On your board this side carries GND at row 44, the USB serial pins, and the strapping pins &mdash; nothing this circuit uses.</p>
+      <p><strong>Right header &rarr; column i, rows 44&ndash;62.</strong> Reachable from column <span class="mono">j</span>. <b>This is the working side:</b> 3V3 at row 44, GPIO25/26/27/14 at rows 52&ndash;55, GND at row 57, and <b>5V/VIN at row 62</b> &mdash; which is where the motor rail now comes from.</p>
+      <p><strong>USB connector faces row 63</strong>, overhanging the end of the board so the cable clears everything. Columns c, d, e, f, g, h sit underneath the module and are unusable.</p>
+    </div>
+    <div class="warn">
+      <p><strong>Measure the module before you commit.</strong> Header-to-header width decides whether this works on one breadboard. Measure centre-to-centre across the two pin rows:</p>
+      <p><span class="mono">22.9 mm (0.9&Prime;)</span> &rarr; columns b and i as above, with a and j free. This is the layout drawn here.</p>
+      <p><span class="mono">25.4 mm (1.0&Prime;)</span> &rarr; the module lands on a and j and covers <em>every</em> hole in its rows. Push a second breadboard against the first and jumper across, or the pins cannot be reached at all.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 03</p>
+    <h2>The map</h2>
+    <p>Full 63-row board, built around your board&rsquo;s actual pin order. Every stage sits in the lower half, columns f&ndash;j, because that is the side your signal pins face. Occupied holes are filled in their circuit colour; jumper endpoints carry a <span class="mono">W</span> tag matching the wire schedule. Scroll sideways for the full length.</p>
+  </div>
+  <div class="figure">
+    <div class="figscroll" id="bb"></div>
+    <div class="legend">
+      <span><i style="background:var(--z-awake)"></i>Green LED &middot; GPIO14</span>
+      <span><i style="background:var(--z-warn)"></i>Red LED &middot; GPIO27</span>
+      <span><i style="background:var(--z-buzz)"></i>Buzzer &middot; GPIO25</span>
+      <span><i style="background:var(--z-motor)"></i>Motor &middot; GPIO26</span>
+      <span><i style="background:var(--z-gnd)"></i>Ground</span>
+      <span><i style="background:var(--z-33)"></i>3V3</span>
+      <span><i style="background:var(--z-pwr)"></i>+5V from VIN</span>
+    </div>
+    <div class="figcap">
+      <span>Rows run 1&ndash;63 along the length. Columns a&ndash;e and f&ndash;j are separate nets; the centre gap breaks them.</span>
+      <span class="mono">Scale 1 row = 1 tie-point pitch</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 04</p>
+    <h2>Circuit zones</h2>
+    <p>Four output stages in rows 3&ndash;40, all sharing one ground rail. Three run at 3.3&nbsp;V; the motor runs at 5&nbsp;V behind a MOSFET, and no 5&nbsp;V node ever touches a GPIO.</p>
+  </div>
+  <div class="zones">
+    <div class="zone" style="--zc:var(--z-awake)">
+      <div class="zone-h"><h3>Green LED &mdash; awake</h3><span class="gpio">GPIO14</span></div>
+      <ul>
+        <li><b>W1</b><span>(55, j) &rarr; (3, j)</span></li>
+        <li><b>R1 220&nbsp;&Omega;</b><span>(3, h) &rarr; (6, h)</span></li>
+        <li><b>LED anode</b><span>(6, f) &mdash; long leg</span></li>
+        <li><b>LED cathode</b><span>(8, f) &mdash; short leg, flat edge</span></li>
+        <li><b>W2</b><span>(8, j) &rarr; &minus; rail @ 8</span></li>
+      </ul>
+    </div>
+    <div class="zone" style="--zc:var(--z-warn)">
+      <div class="zone-h"><h3>Red LED &mdash; warning</h3><span class="gpio">GPIO27</span></div>
+      <ul>
+        <li><b>W3</b><span>(54, j) &rarr; (11, j)</span></li>
+        <li><b>R2 220&nbsp;&Omega;</b><span>(11, h) &rarr; (14, h)</span></li>
+        <li><b>LED anode</b><span>(14, f) &mdash; long leg</span></li>
+        <li><b>LED cathode</b><span>(16, f) &mdash; short leg</span></li>
+        <li><b>W4</b><span>(16, j) &rarr; &minus; rail @ 16</span></li>
+      </ul>
+    </div>
+    <div class="zone" style="--zc:var(--z-buzz)">
+      <div class="zone-h"><h3>Buzzer &mdash; NPN low side</h3><span class="gpio">GPIO25</span></div>
+      <ul>
+        <li><b>W5</b><span>(52, j) &rarr; (19, j)</span></li>
+        <li><b>R3 1&nbsp;k&Omega;</b><span>(19, h) &rarr; (22, h) &rarr; base</span></li>
+        <li><b>Q1 legs</b><span>(21, i) (22, i) (23, i)</span></li>
+        <li><b>W6</b><span>(23, j) &rarr; &minus; rail @ 23</span></li>
+        <li><b>Buzzer &minus;</b><span>(21, g) &mdash; collector row</span></li>
+        <li><b>Buzzer +</b><span>(26, g)</span></li>
+        <li><b>W7</b><span>(44, j) 3V3 &rarr; (26, j)</span></li>
+      </ul>
+    </div>
+    <div class="zone" style="--zc:var(--z-motor)">
+      <div class="zone-h"><h3>Motor &mdash; MOSFET low side</h3><span class="gpio">GPIO26</span></div>
+      <ul>
+        <li><b>W8</b><span>(53, j) &rarr; (30, j)</span></li>
+        <li><b>R4 1&nbsp;k&Omega;</b><span>(30, h) &rarr; (33, h) &rarr; gate</span></li>
+        <li><b>R5 10&nbsp;k&Omega;</b><span>(33, g) &rarr; (37, g) &mdash; pulldown</span></li>
+        <li><b>Q2 legs</b><span>(33, i) G &middot; (34, i) D &middot; (35, i) S</span></li>
+        <li><b>W9</b><span>(37, j) &rarr; &minus; rail @ 37</span></li>
+        <li><b>W10</b><span>(35, j) &rarr; &minus; rail @ 35</span></li>
+        <li><b>D1 flyback</b><span>(34, h) &rarr; (40, h) &mdash; band at 40</span></li>
+        <li><b>Motor &minus;</b><span>(34, f) &mdash; drain row</span></li>
+        <li><b>Motor +</b><span>(40, f)</span></li>
+        <li><b>W11</b><span>(40, j) &rarr; + rail @ 40</span></li>
+        <li><b>C1 100&nbsp;&micro;F</b><span>+ rail @ 42 / &minus; rail @ 42</span></li>
+        <li><b>W13</b><span>(62, j) 5V &rarr; + rail @ 62</span></li>
+      </ul>
+      <p style="font-size:13px; color:var(--ink-3)">Escalation is haptic again: WARNING pulses the motor, DROWSY holds it on. The red LED keeps its DROWSY blink as a second channel.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 04b</p>
+    <h2>Powering the 5&nbsp;V motor</h2>
+    <p>The motor needs 5&nbsp;V; the ESP32 needs 3.3&nbsp;V logic. Rev&nbsp;B resolves that without a second supply, which is what kept Rev&nbsp;A safe.</p>
+  </div>
+  <div class="grid2">
+    <div class="warn">
+      <p><strong>The 5&nbsp;V comes from the board, not a pack.</strong> Pin <span class="mono">5V/VIN</span> at (62,&nbsp;i) is USB 5&nbsp;V passed through the DevKit. <span class="mono">W13</span> carries it to the bottom + rail, and <span class="mono">W11</span> feeds the motor from there.</p>
+      <p><strong>Why that matters.</strong> A battery pack reintroduces both hazards Rev&nbsp;A removed: a 5&nbsp;V node that can back-feed a GPIO, and a supply whose ground floats relative to the board. Sharing USB keeps one supply and one ground, so neither can happen.</p>
+      <p><strong>No 5&nbsp;V ever reaches a GPIO.</strong> GPIO26 only drives the MOSFET <em>gate</em>, which is isolated from drain and source. The 5&nbsp;V lives entirely on the + rail, the motor, and Q2&rsquo;s drain.</p>
+    </div>
+    <div class="warn">
+      <p><strong>Brownout is the real risk now, not damage.</strong> Motor inrush sags the 5&nbsp;V rail. Sag far enough and the ESP32 resets &mdash; your alert device reboots at the exact moment it is supposed to be alerting, and nothing on screen tells you it happened.</p>
+      <p><strong><span class="mono">C1</span>, 100&nbsp;&micro;F across the bottom rails at position&nbsp;42, is the fix.</strong> It supplies the inrush locally so the rail does not dip. It is not optional; Rev&nbsp;A had no bulk capacitance because it had no motor. Stripe leg (&minus;) goes to the &minus; rail.</p>
+      <p><strong>Symptom to watch for:</strong> if the board prints <span class="mono">AlertRide ready</span> again in the middle of a DROWSY test, that is a reset, not a glitch. Check C1 is seated and its polarity is right.</p>
+    </div>
+  </div>
+  <div class="sec-head" style="margin-top:34px; border:none; padding-bottom:0">
+    <h3>Current budget</h3>
+  </div>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Load</th><th>Rail</th><th>Draw</th><th>Note</th></tr></thead>
+      <tbody>
+        <tr><td>ESP32, Wi-Fi off</td><td class="m">3.3 V</td><td class="m">~45 mA</td><td>Regulated on the DevKit from the same USB 5 V</td></tr>
+        <tr><td>One LED + its 220&nbsp;&Omega;</td><td class="m">3.3 V</td><td class="m">~6 mA</td><td>Only one LED is ever lit at a time</td></tr>
+        <tr><td>Active buzzer</td><td class="m">3.3 V</td><td class="m">~30 mA</td><td>Through Q1</td></tr>
+        <tr><td>Vibration motor, running</td><td class="m">5 V</td><td class="m">~100 mA</td><td>Typical small ERM &mdash; <b>confirm against your part</b></td></tr>
+        <tr><td>Vibration motor, stall / inrush</td><td class="m">5 V</td><td class="m">~200 mA</td><td>Brief; this is what C1 absorbs</td></tr>
+        <tr class="dim"><td><b>Worst case, everything on</b></td><td class="m">&mdash;</td><td class="m"><b>~300 mA</b></td><td>Against a USB 2.0 port&rsquo;s 500 mA</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="warn" style="margin-top:16px">
+    <p><strong>Measure your motor&rsquo;s stall current before you trust this table.</strong> The 100&nbsp;mA figure is typical for a small coin or bar ERM vibration motor. If yours is a geared DC motor, or anything that draws <b>more than about 350&nbsp;mA stalled</b>, USB cannot feed it alongside the ESP32 and you do need a separate pack &mdash; in which case tie its ground to the &minus; rail and never let its + reach a GPIO.</p>
+    <p>To measure: put a multimeter in series on the 5&nbsp;V lead, run the motor, then hold the shaft or weight still and read the peak.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 05</p>
+    <h2>Wire schedule</h2>
+    <p>Thirteen jumpers, no supply leads. Colours are a convention, not electrically required &mdash; but following them makes a fault obvious at a glance.</p>
+  </div>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>ID</th><th>From</th><th>To</th><th>Colour</th><th>Carries</th></tr></thead>
+      <tbody>
+        <tr><td class="tp">W1</td><td class="tp">(55, j)</td><td class="tp">(3, j)</td><td><span class="dot" style="background:var(--z-awake)"></span>Green</td><td>GPIO14 &rarr; green LED stage</td></tr>
+        <tr><td class="tp">W2</td><td class="tp">(8, j)</td><td class="tp">&minus; rail @ 8</td><td><span class="dot" style="background:var(--z-gnd)"></span>Black</td><td>Green LED cathode &rarr; ground</td></tr>
+        <tr><td class="tp">W3</td><td class="tp">(54, j)</td><td class="tp">(11, j)</td><td><span class="dot" style="background:var(--z-warn)"></span>Red</td><td>GPIO27 &rarr; red LED stage</td></tr>
+        <tr><td class="tp">W4</td><td class="tp">(16, j)</td><td class="tp">&minus; rail @ 16</td><td><span class="dot" style="background:var(--z-gnd)"></span>Black</td><td>Red LED cathode &rarr; ground</td></tr>
+        <tr><td class="tp">W5</td><td class="tp">(52, j)</td><td class="tp">(19, j)</td><td><span class="dot" style="background:var(--z-buzz)"></span>Yellow</td><td>GPIO25 &rarr; buzzer base resistor</td></tr>
+        <tr><td class="tp">W6</td><td class="tp">(23, j)</td><td class="tp">&minus; rail @ 23</td><td><span class="dot" style="background:var(--z-gnd)"></span>Black</td><td>Q1 emitter &rarr; ground</td></tr>
+        <tr><td class="tp">W7</td><td class="tp">(44, j)</td><td class="tp">(26, j)</td><td><span class="dot" style="background:var(--z-33)"></span>Orange</td><td>ESP32 3V3 &rarr; buzzer positive</td></tr>
+        <tr><td class="tp">W8</td><td class="tp">(53, j)</td><td class="tp">(30, j)</td><td><span class="dot" style="background:var(--z-motor)"></span>Blue</td><td>GPIO26 &rarr; MOSFET gate resistor</td></tr>
+        <tr><td class="tp">W9</td><td class="tp">(37, j)</td><td class="tp">&minus; rail @ 37</td><td><span class="dot" style="background:var(--z-gnd)"></span>Black</td><td>R5 gate pulldown &rarr; ground</td></tr>
+        <tr><td class="tp">W10</td><td class="tp">(35, j)</td><td class="tp">&minus; rail @ 35</td><td><span class="dot" style="background:var(--z-gnd)"></span>Black</td><td>Q2 source &rarr; ground</td></tr>
+        <tr><td class="tp">W11</td><td class="tp">(40, j)</td><td class="tp">+ rail @ 40</td><td><span class="dot" style="background:var(--z-pwr)"></span>Red</td><td>Motor + &rarr; 5 V rail</td></tr>
+        <tr><td class="tp">W12</td><td class="tp">(57, j)</td><td class="tp">&minus; rail @ 57</td><td><span class="dot" style="background:var(--z-gnd)"></span>Black</td><td><b>ESP32 GND &rarr; common ground</b></td></tr>
+        <tr><td class="tp">W13</td><td class="tp">(62, j)</td><td class="tp">+ rail @ 62</td><td><span class="dot" style="background:var(--z-pwr)"></span>Red</td><td><b>ESP32 5V/VIN &rarr; 5 V rail</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="warn" style="margin-top:16px">
+    <p><strong>Thirteen wires, still no external supply.</strong> W13 makes the bottom + rail a 5&nbsp;V rail sourced from the board itself. Everything on this breadboard is powered by, and grounded to, the one USB cable.</p>
+    <p><strong>W12 is the wire that makes both switches work.</strong> Q1 compares your GPIO voltage against <em>its own</em> emitter, and Q2 against its own source. Without a shared ground either sees an undefined drive voltage and latches on or never turns on. Fit W12 before any signal wire.</p>
+    <p><strong>Fit W13 last, after the motor stage is built and tested dry.</strong> It is the only wire that puts 5&nbsp;V on the board; until it goes in, a mistake in the motor stage cannot do anything.</p>
+    <p><strong>Both rails above column a stay empty.</strong> Only the bottom pair is used &mdash; &minus; for ground, + for the 5&nbsp;V motor rail.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 06</p>
+    <h2>Components and their tie-points</h2>
+    <p>Resistor bands are given as 4-band with a gold tolerance ring, read from the end where the bands are crowded together.</p>
+  </div>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>Ref</th><th>Part</th><th>Lead A</th><th>Lead B</th><th>Identify by</th></tr></thead>
+      <tbody>
+        <tr><td class="tp">R1</td><td>220 &Omega;</td><td class="tp">(3, h)</td><td class="tp">(6, h)</td><td><span class="bands"><i style="background:#B23A2E"></i><i style="background:#B23A2E"></i><i style="background:#6B4226"></i><i style="background:#C9A227"></i></span>red red brown gold</td></tr>
+        <tr><td class="tp">LED1</td><td>Green LED</td><td class="tp">(6, f) anode</td><td class="tp">(8, f) cathode</td><td>Long leg = anode; flat rim = cathode</td></tr>
+        <tr><td class="tp">R2</td><td>220 &Omega;</td><td class="tp">(11, h)</td><td class="tp">(14, h)</td><td><span class="bands"><i style="background:#B23A2E"></i><i style="background:#B23A2E"></i><i style="background:#6B4226"></i><i style="background:#C9A227"></i></span>red red brown gold</td></tr>
+        <tr><td class="tp">LED2</td><td>Red LED</td><td class="tp">(14, f) anode</td><td class="tp">(16, f) cathode</td><td>Long leg = anode</td></tr>
+        <tr><td class="tp">R3</td><td>1 k&Omega;</td><td class="tp">(19, h)</td><td class="tp">(22, h)</td><td><span class="bands"><i style="background:#6B4226"></i><i style="background:#1A1A1A"></i><i style="background:#B23A2E"></i><i style="background:#C9A227"></i></span>brown black red gold</td></tr>
+        <tr><td class="tp">Q1</td><td>BC547 / 2N2222</td><td class="tp">(21, i) (22, i) (23, i)</td><td class="tp">&mdash;</td><td>TO-92, flat face toward row 1 &mdash; see orientation note</td></tr>
+        <tr><td class="tp">BZ1</td><td>Active buzzer</td><td class="tp">(21, g) &minus;</td><td class="tp">(26, g) +</td><td>Longer pin / <span class="mono">+</span> mark = positive</td></tr>
+        <tr><td class="tp">R4</td><td>1 k&Omega;</td><td class="tp">(30, h)</td><td class="tp">(33, h)</td><td><span class="bands"><i style="background:#6B4226"></i><i style="background:#1A1A1A"></i><i style="background:#B23A2E"></i><i style="background:#C9A227"></i></span>brown black red gold</td></tr>
+        <tr><td class="tp">R5</td><td>10 k&Omega;</td><td class="tp">(33, g)</td><td class="tp">(37, g)</td><td><span class="bands"><i style="background:#6B4226"></i><i style="background:#1A1A1A"></i><i style="background:#C2611F"></i><i style="background:#C9A227"></i></span>brown black orange gold</td></tr>
+        <tr><td class="tp">Q2</td><td>IRLZ44N MOSFET</td><td class="tp">(33, i) (34, i) (35, i)</td><td class="tp">&mdash;</td><td>TO-220, metal tab toward row 63 &mdash; G D S</td></tr>
+        <tr><td class="tp">D1</td><td>1N4007 flyback</td><td class="tp">(34, h) anode</td><td class="tp">(40, h) cathode</td><td><b>Banded end at row 40</b>, the + rail side</td></tr>
+        <tr><td class="tp">M1</td><td>Vibration motor, 5 V</td><td class="tp">(34, f) &minus;</td><td class="tp">(40, f) +</td><td>Usually red = +, black = &minus;; unmarked = either way</td></tr>
+        <tr><td class="tp">C1</td><td>100 &micro;F electrolytic</td><td class="tp">+ rail @ 42</td><td class="tp">&minus; rail @ 42</td><td><b>Stripe leg is &minus;</b> &mdash; backwards it can vent</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="warn">
+      <p><strong>Q1 leg order flips between the two parts you may have.</strong> Hold it with the flat face toward you and legs pointing down, then read left to right:</p>
+      <p><span class="mono">BC547</span> &rarr; C&nbsp;B&nbsp;E, so row 21 = collector, 22 = base, <b>23 = emitter</b>. This is what the map assumes.</p>
+      <p><span class="mono">2N2222 (TO-92)</span> &rarr; E&nbsp;B&nbsp;C, the reverse. If you use this part, swap W6 to <span class="mono">(21, j)</span> and the buzzer negative to <span class="mono">(23, g)</span>.</p>
+      <p>Base stays at row 22 either way. Confirm against the datasheet for your exact marking before power.</p>
+      <p><strong>If the buzzer never sounds at all, check <span class="mono">W12</span> first.</strong> A missing ground is by far the most common cause, and it looks identical to a dead transistor.</p>
+    </div>
+    <div class="warn">
+      <p><strong>Q2 (IRLZ44N, TO-220) reads G&nbsp;D&nbsp;S</strong> left to right with the printed face toward you and the metal tab pointing away, toward row&nbsp;63. So (33,&nbsp;i)&nbsp;=&nbsp;gate, (34,&nbsp;i)&nbsp;=&nbsp;drain, (35,&nbsp;i)&nbsp;=&nbsp;source. <b>The tab is electrically the drain</b> &mdash; do not let it touch anything.</p>
+      <p><strong>Why the IRLZ44N and not another MOSFET.</strong> Its gate threshold is 1&ndash;2&nbsp;V, so a 3.3&nbsp;V GPIO turns it fully on. A standard IRF540 needs ~10&nbsp;V and would sit half-on, heating up and running the motor weakly. Check for the <span class="mono">L</span> in the part number; it means logic-level.</p>
+      <p><strong>D1 backwards is the one mistake that kills the build instantly.</strong> Reversed, it shorts the 5&nbsp;V rail to the drain the moment W13 goes in. The banded (cathode) end goes to row&nbsp;40, the + side. Check it twice.</p>
+      <p><strong>R5 is not decoration.</strong> Between reset and <span class="mono">pinMode()</span> GPIO26 floats, and a floating gate can hold enough charge to run the motor. R5 drains it, so the motor is off from the instant power is applied.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 07</p>
+    <h2>Pin-to-row reference</h2>
+    <p>Corrected to <b>your</b> board, read off its silkscreen: GND at (44,&nbsp;b) and 3V3 at (44,&nbsp;i). That is the mirror of the DevKitC V4 order, so both columns below are swapped from the reference layout &mdash; every signal this circuit uses now sits on the right header. USB at the row-63 end.</p>
+  </div>
+  <div class="grid2">
+    <div class="tscroll">
+      <table style="min-width:0">
+        <thead><tr><th>Row</th><th>Left pin &middot; col b</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td class="m">44</td><td class="m">GND</td><td><span class="tag free">spare ground</span></td></tr>
+          <tr><td class="m">45</td><td class="m">GPIO23</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">46</td><td class="m">GPIO22</td><td><span class="tag free">OLED SCL option</span></td></tr>
+          <tr class="dim"><td class="m">47</td><td class="m">GPIO1 &middot; TX0</td><td><span class="tag no">USB serial &mdash; keep clear</span></td></tr>
+          <tr class="dim"><td class="m">48</td><td class="m">GPIO3 &middot; RX0</td><td><span class="tag no">USB serial &mdash; keep clear</span></td></tr>
+          <tr><td class="m">49</td><td class="m">GPIO21</td><td><span class="tag free">OLED SDA option</span></td></tr>
+          <tr><td class="m">50</td><td class="m">GND</td><td><span class="tag free">spare ground</span></td></tr>
+          <tr><td class="m">51</td><td class="m">GPIO19</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">52</td><td class="m">GPIO18</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">53</td><td class="m">GPIO5</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">54</td><td class="m">GPIO17 &middot; TX2</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">55</td><td class="m">GPIO16 &middot; RX2</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">56</td><td class="m">GPIO4</td><td><span class="tag free">free</span></td></tr>
+          <tr class="dim"><td class="m">57</td><td class="m">GPIO0</td><td><span class="tag no">boot strap &mdash; leave empty</span></td></tr>
+          <tr class="dim"><td class="m">58</td><td class="m">GPIO2</td><td><span class="tag no">strapping &mdash; leave empty</span></td></tr>
+          <tr class="dim"><td class="m">59</td><td class="m">GPIO15</td><td><span class="tag no">strapping &mdash; leave empty</span></td></tr>
+          <tr class="dim"><td class="m">60</td><td class="m">GPIO8 &middot; SD1</td><td><span class="tag no">flash &mdash; do not use</span></td></tr>
+          <tr class="dim"><td class="m">61</td><td class="m">GPIO7 &middot; SD0</td><td><span class="tag no">flash &mdash; do not use</span></td></tr>
+          <tr class="dim"><td class="m">62</td><td class="m">GPIO6 &middot; CLK</td><td><span class="tag no">flash &mdash; do not use</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="tscroll">
+      <table style="min-width:0">
+        <thead><tr><th>Row</th><th>Right pin &middot; col i</th><th>Use</th></tr></thead>
+        <tbody>
+          <tr><td class="m">44</td><td class="m">3V3</td><td><span class="tag use">W7 buzzer +</span></td></tr>
+          <tr><td class="m">45</td><td class="m">EN</td><td><span class="tag free">reset</span></td></tr>
+          <tr><td class="m">46</td><td class="m">GPIO36 &middot; VP</td><td><span class="tag free">free, input only</span></td></tr>
+          <tr><td class="m">47</td><td class="m">GPIO39 &middot; VN</td><td><span class="tag free">free, input only</span></td></tr>
+          <tr><td class="m">48</td><td class="m">GPIO34</td><td><span class="tag free">free, input only</span></td></tr>
+          <tr><td class="m">49</td><td class="m">GPIO35</td><td><span class="tag free">free, input only</span></td></tr>
+          <tr><td class="m">50</td><td class="m">GPIO32</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">51</td><td class="m">GPIO33</td><td><span class="tag free">free</span></td></tr>
+          <tr><td class="m">52</td><td class="m">GPIO25</td><td><span class="tag use">W5 buzzer</span></td></tr>
+          <tr><td class="m">53</td><td class="m">GPIO26</td><td><span class="tag use">W8 motor gate</span></td></tr>
+          <tr><td class="m">54</td><td class="m">GPIO27</td><td><span class="tag use">W3 red LED</span></td></tr>
+          <tr><td class="m">55</td><td class="m">GPIO14</td><td><span class="tag use">W1 green LED</span></td></tr>
+          <tr class="dim"><td class="m">56</td><td class="m">GPIO12</td><td><span class="tag no">strapping &mdash; leave empty</span></td></tr>
+          <tr><td class="m">57</td><td class="m">GND</td><td><span class="tag use">W12 common ground</span></td></tr>
+          <tr><td class="m">58</td><td class="m">GPIO13</td><td><span class="tag free">free</span></td></tr>
+          <tr class="dim"><td class="m">59</td><td class="m">GPIO9 &middot; SD2</td><td><span class="tag no">flash &mdash; do not use</span></td></tr>
+          <tr class="dim"><td class="m">60</td><td class="m">GPIO10 &middot; SD3</td><td><span class="tag no">flash &mdash; do not use</span></td></tr>
+          <tr class="dim"><td class="m">61</td><td class="m">GPIO11 &middot; CMD</td><td><span class="tag no">flash &mdash; do not use</span></td></tr>
+          <tr><td class="m">62</td><td class="m">5V &middot; VIN</td><td><span class="tag use">W13 motor supply</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="warn" style="margin-top:16px">
+    <p><strong>Confirm three labels before you wire anything.</strong> Two data points fixed this mirror; a third makes it certain. On the right header, row 52 should read <span class="mono">GPIO25</span>, row 55 <span class="mono">GPIO14</span>, and row 57 <span class="mono">GND</span>. If any of those disagree, stop and tell me what is actually printed &mdash; wiring into rows 59&ndash;62 on either side would reach the flash pins.</p>
+  </div>
+  <div class="warn" style="margin-top:16px">
+    <p><strong>All four chosen pins are clean, and row 62 is safe to tap.</strong> GPIO14, 25, 26 and 27 have no boot-time strapping duty and no flash connection, so a load on any of them cannot stop the board from starting. Row 62 on the right header is <span class="mono">5V/VIN</span>, not a GPIO at all &mdash; taking current <em>out</em> of it is what it is for. Do not confuse it with row 62 on the <em>left</em> header, which is the flash clock. That is why they sit where they do &mdash; and why row 56 (GPIO12) stays empty even though it is right in the middle of the cluster: a pull-up there at boot sets the flash to the wrong voltage and the board will not come up.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 08</p>
+    <h2>Firmware</h2>
+    <p>Complete sketch. Board in Arduino IDE: <span class="mono">ESP32 Dev Module</span>. Upload speed 921600, flash frequency 80&nbsp;MHz, monitor 115200.</p>
+  </div>
+  <div class="codeblock">
+    <header><span class="fn">esp32_alert / esp32_alert.ino</span><span class="lang">Arduino C++ &middot; Rev B</span></header>
+<pre><i>// AlertRide alert driver - LED + buzzer + 5 V vibration motor (Rev B).</i>
+<b>const int</b> GREEN_LED = 14;   <i>// row 55, col i</i>
+<b>const int</b> RED_LED   = 27;   <i>// row 54, col i</i>
+<b>const int</b> BUZZER    = 25;   <i>// row 52, col i</i>
+<b>const int</b> MOTOR     = 26;   <i>// row 53, col i -&gt; Q2 gate</i>
+
+<b>const unsigned long</b> LINK_TIMEOUT_MS = 3000;
+<b>const unsigned long</b> MOTOR_PULSE_MS  = 400;
+
+<b>unsigned long</b> lastCommandAt   = 0;
+<b>unsigned long</b> motorPulseUntil = 0;   <i>// 0 = not pulsing</i>
+<b>char</b> state = 'S';
+
+<b>void</b> allOff() {
+  digitalWrite(GREEN_LED, LOW);
+  digitalWrite(RED_LED, LOW);
+  digitalWrite(MOTOR, LOW);
+  motorPulseUntil = 0;
+  noTone(BUZZER);
+}
+
+<b>void</b> applyState(<b>char</b> c) {
+  state = c;
+
+  <b>if</b> (c == 'A') {
+    digitalWrite(GREEN_LED, HIGH);
+    digitalWrite(RED_LED, LOW);
+    digitalWrite(MOTOR, LOW);
+    motorPulseUntil = 0;
+    noTone(BUZZER);
+    Serial.println("AWAKE");
+  }
+  <b>else if</b> (c == 'W') {
+    digitalWrite(GREEN_LED, LOW);
+    digitalWrite(RED_LED, HIGH);
+    tone(BUZZER, 1800, 250);
+    <i>// Pulse, not latch. The 1 Hz keepalive re-triggers it, so WARNING</i>
+    <i>// reads as a repeating tap; DROWSY below is the continuous one.</i>
+    digitalWrite(MOTOR, HIGH);
+    motorPulseUntil = millis() + MOTOR_PULSE_MS;
+    Serial.println("WARNING");
+  }
+  <b>else if</b> (c == 'D') {
+    digitalWrite(GREEN_LED, LOW);
+    tone(BUZZER, 2200);
+    digitalWrite(MOTOR, HIGH);
+    motorPulseUntil = 0;        <i>// latched on until state changes</i>
+    Serial.println("DROWSY");
+  }
+  <b>else if</b> (c == 'S') {
+    allOff();
+    Serial.println("STOPPED");
+  }
+}
+
+<b>void</b> setup() {
+  <i>// Drive the gate low before anything else. R5 handles the window</i>
+  <i>// before this line runs; this holds it for the rest of the session.</i>
+  pinMode(MOTOR, OUTPUT);
+  digitalWrite(MOTOR, LOW);
+
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+  allOff();
+
+  Serial.begin(115200);
+  delay(200);
+
+  <i>// Boot self-test: each output fires once, so a dead stage shows up</i>
+  <i>// here rather than halfway through a demo. The motor goes last and</i>
+  <i>// alone - if the board resets during it, the 5 V rail is sagging.</i>
+  digitalWrite(GREEN_LED, HIGH); delay(400); digitalWrite(GREEN_LED, LOW);
+  digitalWrite(RED_LED, HIGH);   delay(400); digitalWrite(RED_LED, LOW);
+  tone(BUZZER, 2000, 200);       delay(400);
+  digitalWrite(MOTOR, HIGH);     delay(300); digitalWrite(MOTOR, LOW);
+
+  lastCommandAt = millis();
+  Serial.println("AlertRide ready");
+}
+
+<b>void</b> loop() {
+  <b>if</b> (Serial.available() &gt; 0) {
+    <b>char</b> c = Serial.read();
+    <b>if</b> (c == '\n' || c == '\r') <b>return</b>;
+
+    lastCommandAt = millis();
+
+    <b>if</b> (c == '?') {
+      Serial.println("AlertRide ready");
+    } <b>else if</b> (c == 'A' || c == 'W' || c == 'D' || c == 'S') {
+      applyState(c);
+    }
+    <b>return</b>;
+  }
+
+  <i>// End a WARNING pulse without blocking the serial read above.</i>
+  <b>if</b> (motorPulseUntil != 0 &amp;&amp; millis() &gt;= motorPulseUntil) {
+    digitalWrite(MOTOR, LOW);
+    motorPulseUntil = 0;
+  }
+
+  <i>// Red blinks in DROWSY, stays solid in WARNING. Second escalation</i>
+  <i>// channel alongside the motor, and the one a camera can see.</i>
+  <b>if</b> (state == 'D') {
+    digitalWrite(RED_LED, (millis() / 120) % 2 ? HIGH : LOW);
+  }
+
+  <i>// Failsafe. A latched motor is worse than a latched buzzer: it can</i>
+  <i>// run flat out unattended. Silence from the host stops everything.</i>
+  <b>if</b> ((state == 'W' || state == 'D') &amp;&amp; millis() - lastCommandAt &gt; LINK_TIMEOUT_MS) {
+    allOff();
+    state = 'S';
+    Serial.println("LINK_LOST");
+  }
+}</pre>
+  </div>
+  <div class="warn" style="margin-top:16px">
+    <p><strong>Two motor behaviours, deliberately different.</strong> <span class="mono">W</span> gives a 400&nbsp;ms pulse; because the host re-sends the current state once a second as a keepalive, WARNING reads as a repeating tap. <span class="mono">D</span> latches the motor on until the state changes. Tap versus continuous is a distinction you feel without looking, which is the whole point of a haptic channel in a driver alert.</p>
+    <p><strong>The red LED keeps its DROWSY blink.</strong> Rev&nbsp;A added it to replace the missing motor; it stays because it is the channel a demo camera can record. Solid red = WARNING, 4&nbsp;Hz blink = DROWSY.</p>
+    <p><strong>The failsafe matters more now than it did in Rev&nbsp;A.</strong> <span class="mono">D</span> latches both a 2200&nbsp;Hz tone and the motor. If Python crashes or the window closes mid-alert, nothing sends <span class="mono">S</span> &mdash; and an unattended motor running flat out is a worse failure than a stuck buzzer. Three seconds of host silence clears everything and prints <span class="mono">LINK_LOST</span>.</p>
+    <p><strong>Non-blocking on purpose.</strong> The pulse ends via a <span class="mono">millis()</span> deadline rather than <span class="mono">delay()</span>, so a 400&nbsp;ms buzz never blocks the serial read &mdash; a <span class="mono">delay()</span> there would make the failsafe itself unreliable.</p>
+    <p><strong>If <span class="mono">tone()</span> will not compile</strong>, your ESP32 Arduino core is older than 3.x, where <span class="mono">tone()</span> was added. Either update the core in Boards Manager, or drive the buzzer with <span class="mono">ledcWriteTone()</span>. Nothing else in the sketch is core-version sensitive.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 09</p>
+    <h2>Connecting Python to the board</h2>
+    <p>Whatever COM number the board ends up on, it follows the USB socket rather than the board. Match on the chip ID instead &mdash; and note that a hardcoded <span class="mono">COM6</span> on this machine lands on Bluetooth.</p>
+  </div>
+  <div class="tscroll">
+    <table>
+      <thead><tr><th>File</th><th>Needs</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td class="tp">hardware_test.py</td><td class="m">pyserial only</td><td><b>Run this first.</b> No camera, no mediapipe. Walks the board through every state and prints what it replies, then proves the failsafe by going quiet.</td></tr>
+        <tr><td class="tp">alertride.py</td><td class="m">full stack</td><td>The real thing: webcam &rarr; EAR &rarr; state machine &rarr; serial. Runs camera-only if the board is unplugged, so you can work on either half alone.</td></tr>
+        <tr><td class="tp">face_landmarker.task</td><td class="m">3.76 MB</td><td>The face-mesh model. Must sit in the same folder as <span class="mono">alertride.py</span>.</td></tr>
+        <tr class="dim"><td class="tp">drowsiness_test.py</td><td class="m">&mdash;</td><td>Your original. Superseded &mdash; kept as reference for the EAR maths.</td></tr>
+        <tr class="dim"><td class="tp">face_test.py</td><td class="m">&mdash;</td><td>Your original landmark viewer. Superseded.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="warn" style="margin-top:16px">
+    <p><strong>Three things were wrong before any of this could run.</strong></p>
+    <p><b>1. OpenCV could not open a window.</b> The installed build was <span class="mono">opencv-python-headless</span>, which ships without GUI support, so every <span class="mono">cv2.imshow()</span> call raised <em>&ldquo;The function is not implemented&rdquo;</em>. Replaced with a full build.</p>
+    <p><b>2. mediapipe was not installed at all</b>, and the legacy <span class="mono">mp.solutions.face_mesh</span> API both original scripts use is not built for Python 3.14 at any version. <span class="mono">alertride.py</span> uses the current <span class="mono">FaceLandmarker</span> task API instead. Your EAR function and all twelve eye landmark indices are unchanged &mdash; the 478-point mesh has the same topology, so only the capture wrapper differs.</p>
+    <p><b>3. A state-name mismatch silently disabled the warning stage.</b> <span class="mono">drowsiness_test.py</span> assigns <span class="mono">"BEEP"</span> and <span class="mono">"ALARM+VIBRATION"</span>, but its colour block tests for <span class="mono">"WARNING"</span> and <span class="mono">"DROWSY"</span>. Neither ever matched, so both fell through to the magenta <em>no-face</em> branch. Fixed by using one set of names everywhere, matching the firmware protocol.</p>
+  </div>
+  <div class="warn" style="margin-top:16px">
+    <p><strong>Close the Arduino Serial Monitor before running either script.</strong> Windows gives the port to one process at a time; with the monitor open, PySerial raises <span class="mono">PermissionError: could not open port</span>. Both scripts now say so explicitly instead of failing cryptically.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sec-head">
+    <p class="eyebrow">Section 10</p>
+    <h2>Bring-up order</h2>
+    <p>Each step adds one stage and proves it before the next goes in. If something fails, you know what caused it.</p>
+  </div>
+  <ol class="steps">
+    <li><b>Settle the COM port</b> per the notice at the top of this sheet. Then select it, plus <span class="mono">ESP32 Dev Module</span>, in Arduino IDE.</li>
+    <li><b>Seat the ESP32 alone</b> at rows 44&ndash;62, columns b and i, USB facing row 63. Confirm <span class="mono">GND</span> reads at (44, b) and <span class="mono">3V3</span> at (44, i) before going further &mdash; if they are the other way round, the board is not oriented as this map assumes.</li>
+    <li><b>Fit W12</b> from (57, j) to the bottom &minus; rail. Ground before signals, always.</li>
+    <li><b>Upload the sketch</b> over USB with nothing else connected. The boot self-test will do nothing visible yet, but <span class="mono">AlertRide ready</span> must appear in the Serial Monitor at 115200.</li>
+    <li><b>Build the green LED stage</b> &mdash; R1, LED1, W1, W2. Send <span class="mono">A</span>. Green lights. If not, check the LED is not backwards before anything else.</li>
+    <li><b>Build the red LED stage</b> &mdash; R2, LED2, W3, W4. Send <span class="mono">W</span>. Green drops, red lights.</li>
+    <li><b>Build the buzzer stage</b> &mdash; R3, Q1, BZ1, W5, W6, W7. Send <span class="mono">W</span> for a short beep, <span class="mono">D</span> for a steady tone, <span class="mono">S</span> for silence. If it buzzes constantly regardless of command, Q1 is in backwards.</li>
+    <li><b>Build the motor stage dry</b> &mdash; R4, R5, Q2, D1, M1, W8, W9, W10, W11, and C1. <b>Leave W13 out.</b> With no 5 V on the rail nothing can move yet, which is the point: check D1&rsquo;s band is at row 40, C1&rsquo;s stripe is on the &minus; rail, and Q2 reads G-D-S into rows 33-34-35.</li>
+    <li><b>Fit W13</b> from (62, j) to the + rail. This is the moment 5 V enters the board. The motor must be still &mdash; if it runs the instant you seat this wire, pull it out immediately and check R5 and Q2&rsquo;s orientation.</li>
+    <li><b>Test the motor</b> &mdash; send <span class="mono">W</span> for a short pulse, <span class="mono">D</span> for continuous, <span class="mono">S</span> to stop. If the board reprints <span class="mono">AlertRide ready</span> when the motor starts, the 5 V rail is browning out: check C1, then measure the motor&rsquo;s stall current against Section&nbsp;04b.</li>
+    <li><b>Close the Serial Monitor and run <span class="mono">hardware_test.py</span>.</b> It drives every state for you and prints what the board replies, including the <span class="mono">LINK_LOST</span> failsafe. This is the whole hardware check in one command &mdash; no camera involved.</li>
+    <li><b>Run <span class="mono">alertride.py</span>.</b> Test in this order: eyes open, one normal blink, a deliberate 1-second closure, a 3-second closure, then cover the camera entirely.</li>
+    <li><b>Calibrate the threshold.</b> Watch the on-screen EAR with your eyes open and then shut, and set <span class="mono">EAR_THRESHOLD</span> midway between the two. The default 0.25 is a starting point, not a correct value for your face, glasses or lighting.</li>
+    <li><b>Log the run</b> &mdash; trials, false alarms, missed detections, lighting, glasses on or off. Stationary only, and never in a moving vehicle.</li>
+    <li><b>Tape the motor to something.</b> A loose vibration motor walks off the bench and drags the breadboard wires out with it. Tape it to the desk, or to whatever you are demonstrating it against.</li>
+  </ol>
+</section>
+
+<footer>
+  <span>AlertRide &mdash; early-warning prototype. Not a certified vehicle safety or medical device. Demonstrate stationary.</span>
+  <span class="mono">Rev B</span>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var P = 22, X0 = 62, Y0 = 60;
+  var COLS = ["a","b","c","d","e","f","g","h","i","j"];
+  var GAPEXTRA = 16, TAGLANE = 26;
+
+  function colY(c){
+    var i = COLS.indexOf(c);
+    var y = Y0 + 2*P + TAGLANE + i*P;
+    if(i >= 5) y += GAPEXTRA;
+    return y;
+  }
+  function rowX(r){ return X0 + (r-1)*P; }
+  var RAIL_TOP_P = Y0, RAIL_TOP_N = Y0 + P;
+  var RAIL_BOT_P = colY("j") + 66, RAIL_BOT_N = RAIL_BOT_P + P;
+  var W = X0 + 63*P + 52, H = RAIL_BOT_N + 30;
+
+  var s = [];
+  function esc(t){ return String(t).replace(/&/g,"&amp;").replace(/</g,"&lt;"); }
+  function rect(x,y,w,h,cls,extra){ s.push('<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" class="'+cls+'"'+(extra||"")+'/>'); }
+  function txt(x,y,t,cls,extra){ s.push('<text x="'+x+'" y="'+y+'" class="'+cls+'"'+(extra||"")+'>'+esc(t)+'</text>'); }
+
+  // ---- board body ----
+  rect(X0-14, Y0-14, 63*P+30, RAIL_BOT_N-Y0+30, "board", ' rx="4"');
+
+  // ---- rails ----
+  var rails = [[RAIL_TOP_P,"pos","+"],[RAIL_TOP_N,"neg","−"],[RAIL_BOT_P,"pos","+"],[RAIL_BOT_N,"neg","−"]];
+  rails.forEach(function(r){
+    s.push('<line x1="'+(X0-6)+'" y1="'+(r[0]-10)+'" x2="'+(X0+62*P+6)+'" y2="'+(r[0]-10)+'" class="railline '+r[1]+'"/>');
+    txt(X0-32, r[0]+4, r[2], "raillab "+r[1]);
+    for(var n=1;n<=63;n++){ if(n%6===0) continue; rect(rowX(n)-3.2, r[0]-3.2, 6.4, 6.4, "hole", ' rx="1.4"'); }
+  });
+
+  // ---- terminal holes ----
+  for(var ci=0; ci<COLS.length; ci++){
+    for(var n=1;n<=63;n++){
+      rect(rowX(n)-3.2, colY(COLS[ci])-3.2, 6.4, 6.4, "hole", ' rx="1.4"');
+    }
+  }
+
+  // ---- centre gap channel ----
+  s.push('<rect x="'+(X0-10)+'" y="'+(colY("e")+P-GAPEXTRA/2-5)+'" width="'+(63*P+22)+'" height="10" class="gap" rx="2"/>');
+
+  // ---- labels ----
+  COLS.forEach(function(c){ txt(X0-32, colY(c)+3.6, c, "collab"); });
+  for(var n=1;n<=63;n++){
+    if(n===1 || n%5===0 || n===63){
+      txt(rowX(n), Y0+2*P+14, n, "rowlab");
+      txt(rowX(n), RAIL_BOT_P-14, n, "rowlab");
+    }
+  }
+
+  // ---- ESP32 module body ----
+  var mx = rowX(44)-11, mw = (62-44)*P+22;
+  var my = colY("b")-13, mh = colY("i")-colY("b")+26;
+  rect(mx, my, mw, mh, "chip", ' rx="3"');
+  rect(rowX(63)-4, my+mh/2-11, 22, 22, "usb", ' rx="2"');
+  txt(rowX(63)+16, my+mh/2+3.5, "USB", "usblab");
+
+  var LEFT = ["GND","GPIO23","GPIO22","TX0","RX0","GPIO21","GND","GPIO19","GPIO18","GPIO5","GPIO17","GPIO16","GPIO4","GPIO0","GPIO2","GPIO15","SD1","SD0","CLK"];
+  var RIGHT = ["3V3","EN","GPIO36","GPIO39","GPIO34","GPIO35","GPIO32","GPIO33","GPIO25","GPIO26","GPIO27","GPIO14","GPIO12","GND","GPIO13","SD2","SD3","CMD","5V"];
+  var USED = {52:"buzz",53:"motor",54:"warn",55:"awake",57:"gnd",44:"v33",62:"pwr"};
+
+  for(var i=0;i<19;i++){
+    var r = 44+i, x = rowX(r), hot = USED[r];
+    txt(x+3.6, colY("c")+6, LEFT[i], "silk", ' transform="rotate(-90 '+(x+3.6)+' '+(colY("c")+6)+')"');
+    txt(x+3.6, colY("h")+6, RIGHT[i], "silk"+(hot?" silk-"+hot:""), ' transform="rotate(-90 '+(x+3.6)+' '+(colY("h")+6)+')"');
+  }
+  txt(rowX(53), my+mh/2+2, "ESP32-WROOM-32", "chiplab");
+  txt(rowX(53), my+mh/2+15, "rows 44–62  ·  col b + col i", "chipsub");
+
+  // ---- component glyphs (drawn under the tie-point markers) ----
+  function resistor(r1,r2,c,b1,b2,b3){
+    var x1=rowX(r1), x2=rowX(r2), y=colY(c);
+    s.push('<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" class="lead"/>');
+    var bx=x1+11, bw=x2-x1-22;
+    rect(bx, y-7, bw, 14, "resbody", ' rx="3"');
+    [b1,b2,b3].forEach(function(col,i){
+      rect(bx+7+i*8, y-7, 3.4, 14, "band", ' fill="'+col+'"');
+    });
+    rect(bx+bw-6, y-7, 3, 14, "band", ' fill="#C9A227"');
+  }
+  resistor(3,6,"h","#B23A2E","#B23A2E","#6B4226");
+  resistor(11,14,"h","#B23A2E","#B23A2E","#6B4226");
+  resistor(19,22,"h","#6B4226","#1A1A1A","#B23A2E");
+  resistor(30,33,"h","#6B4226","#1A1A1A","#B23A2E");   // R4 1k
+  resistor(33,37,"g","#6B4226","#1A1A1A","#C2611F");   // R5 10k
+
+  function led(r1,r2,c,cls){
+    var x1=rowX(r1), x2=rowX(r2), y=colY(c);
+    s.push('<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" class="lead"/>');
+    s.push('<path d="M '+(x1+7)+' '+(y-9)+' L '+(x2-10)+' '+(y-9)+' A 9 9 0 0 1 '+(x2-10)+' '+(y+9)+' L '+(x1+7)+' '+(y+9)+' Z" class="'+cls+'"/>');
+  }
+  led(6,8,"f","ledg");
+  led(14,16,"f","ledr");
+
+  function to92(r1,r3,c,label){
+    var x1=rowX(r1), x3=rowX(r3), y=colY(c);
+    rect(x1-8, y-19, (x3-x1)+16, 19, "pkg", ' rx="8"');
+    s.push('<line x1="'+(x1-8)+'" y1="'+(y-1.5)+'" x2="'+(x3+8)+'" y2="'+(y-1.5)+'" class="pkgflat"/>');
+    txt((x1+x3)/2, y-6, label, "pkglab");
+  }
+  to92(21,23,"i","Q1");
+
+  // ---- off-board parts ----
+  function offboard(r,c,label,dir){
+    var x=rowX(r), yy = (dir === -1) ? colY(c)-30 : colY(c)+13;
+    rect(x-24, yy, 48, 17, "offb", ' rx="3"');
+    txt(x, yy+12, label, "offlab");
+  }
+  offboard(23.5,"g","BUZZER",1);
+
+  // ---- Q2, TO-220, tab pointing toward row 63 ----
+  function to220(r1,r3,c,label){
+    var x1=rowX(r1), x3=rowX(r3), y=colY(c);
+    rect(x1-8, y-19, (x3-x1)+16, 19, "pkg", ' rx="2"');
+    rect(x1-8, y-19, (x3-x1)+16, 6, "pkgtab");
+    txt((x1+x3)/2, y-5, label, "pkglab");
+  }
+  to220(33,35,"i","Q2");
+
+  // ---- D1 flyback, band at the row-40 (cathode, +5 V) end ----
+  (function diode(){
+    var x1=rowX(34), x2=rowX(40), y=colY("h");
+    s.push('<line x1="'+x1+'" y1="'+y+'" x2="'+x2+'" y2="'+y+'" class="lead"/>');
+    var bx=x1+36, bw=x2-x1-50;
+    rect(bx, y-6, bw, 12, "diode", ' rx="2"');
+    rect(bx+bw-4.5, y-6, 3.2, 12, "band", ' fill="#E4EAF0"');
+    txt(bx+bw/2, y-11, "D1", "tiny");
+  })();
+
+  // ---- M1, sitting off the board between its two tie-points ----
+  (function motor(){
+    var x1=rowX(34), x2=rowX(40), y=colY("f"), by=colY("b")-9;
+    s.push('<line x1="'+x1+'" y1="'+y+'" x2="'+x1+'" y2="'+(by+19)+'" class="lead"/>');
+    s.push('<line x1="'+x2+'" y1="'+y+'" x2="'+x2+'" y2="'+(by+19)+'" class="lead"/>');
+    rect(x1-4, by, x2-x1+8, 19, "offb", ' rx="3"');
+    txt((x1+x2)/2, by+12.5, "M1  5 V motor", "offlab");
+    txt(x1, by+31, "\u2212", "tiny");
+    txt(x2, by+31, "+", "tiny");
+  })();
+
+  // ---- C1 bulk capacitor, straddling the bottom rails at position 42 ----
+  (function cap(){
+    var x=rowX(42);
+    s.push('<line x1="'+x+'" y1="'+RAIL_BOT_P+'" x2="'+x+'" y2="'+RAIL_BOT_N+'" class="lead"/>');
+    rect(x-9, RAIL_BOT_P+3, 18, P-6, "pkg", ' rx="3"');
+    rect(x-9, RAIL_BOT_P+3, 5, P-6, "band", ' fill="#8894A0"');
+    txt(x+26, RAIL_BOT_P+P/2+3, "C1 100uF", "tiny");
+  })();
+
+  // ---- occupied tie-points, always on top of part bodies ----
+  var OCC = [
+    [3,"j","awake"],[3,"h","awake"],[6,"h","awake"],[6,"f","awake"],[8,"f","awake"],[8,"j","gnd"],
+    [11,"j","warn"],[11,"h","warn"],[14,"h","warn"],[14,"f","warn"],[16,"f","warn"],[16,"j","gnd"],
+    [19,"j","buzz"],[19,"h","buzz"],[22,"h","buzz"],[21,"i","buzz"],[22,"i","buzz"],[23,"i","buzz"],
+    [23,"j","gnd"],[21,"g","buzz"],[26,"g","buzz"],[26,"j","v33"],
+    [30,"j","motor"],[30,"h","motor"],[33,"h","motor"],[33,"g","motor"],[37,"g","motor"],
+    [33,"i","motor"],[34,"i","motor"],[35,"i","motor"],[35,"j","gnd"],[37,"j","gnd"],
+    [34,"h","motor"],[40,"h","pwr"],[34,"f","motor"],[40,"f","pwr"],[40,"j","pwr"],
+    [55,"j","awake"],[54,"j","warn"],[53,"j","motor"],[52,"j","buzz"],[57,"j","gnd"],
+    [44,"j","v33"],[62,"j","pwr"]
+  ];
+  OCC.forEach(function(o){
+    s.push('<circle cx="'+rowX(o[0])+'" cy="'+colY(o[1])+'" r="5" class="occ occ-'+o[2]+'"/>');
+  });
+
+  // ---- ESP32 pin markers ----
+  for(var j=0;j<19;j++){
+    var rr = 44+j, xx = rowX(rr), h2 = USED[rr];
+    s.push('<circle cx="'+xx+'" cy="'+colY("b")+'" r="4.6" class="pin"/>');
+    s.push('<circle cx="'+xx+'" cy="'+colY("i")+'" r="4.6" class="pin'+(h2?" pin-"+h2:"")+'"/>');
+  }
+
+  // ---- rail destination markers ----
+  [8,16,23,35,37,42,57].forEach(function(n){
+    s.push('<circle cx="'+rowX(n)+'" cy="'+RAIL_BOT_N+'" r="5" class="occ occ-gnd"/>');
+  });
+  [40,42,62].forEach(function(n){
+    s.push('<circle cx="'+rowX(n)+'" cy="'+RAIL_BOT_P+'" r="5" class="occ occ-pwr"/>');
+  });
+
+  // ---- wire endpoint tags, in their own lane below column j ----
+  var TAGS = [
+    [3,"W1","awake"],[8,"W2","gnd"],[11,"W3","warn"],[16,"W4","gnd"],
+    [19,"W5","buzz"],[23,"W6","gnd"],[26,"W7","v33"],
+    [30,"W8","motor"],[35,"W10","gnd"],[37,"W9","gnd"],[40,"W11","pwr"],
+    [44,"W7","v33"],[52,"W5","buzz"],[53,"W8","motor"],[54,"W3","warn"],
+    [55,"W1","awake"],[57,"W12","gnd"],[62,"W13","pwr"]
+  ];
+  TAGS.forEach(function(t){
+    var x=rowX(t[0]), y=colY("j")+24;
+    rect(x-12.5, y-9, 25, 14, "wtag wtag-"+t[2], ' rx="2"');
+    txt(x, y+1.5, t[1], "wtaglab");
+    s.push('<line x1="'+x+'" y1="'+(colY("j")+7)+'" x2="'+x+'" y2="'+(y-9)+'" class="wlead wlead-'+t[2]+'"/>');
+  });
+
+  // ---- zone brackets above the board ----
+  function bracket(r1,r2,label,cls){
+    var x1=rowX(r1)-10, x2=rowX(r2)+10, y=28;
+    s.push('<path d="M '+x1+' '+(y+7)+' L '+x1+' '+y+' L '+x2+' '+y+' L '+x2+' '+(y+7)+'" class="brk brk-'+cls+'"/>');
+    txt((x1+x2)/2, y-6, label, "brklab brklab-"+cls);
+  }
+  bracket(3,8,"GREEN LED","awake");
+  bracket(11,16,"RED LED","warn");
+  bracket(19,26,"BUZZER","buzz");
+  bracket(30,40,"MOTOR  ·  5 V","motor");
+  bracket(44,62,"ESP32  ·  ROWS 44–62","gnd");
+
+  var svg = '<svg width="'+W+'" height="'+H+'" viewBox="0 0 '+W+' '+H+'" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Breadboard map: ESP32 at rows 44 to 62, green LED at rows 3 to 8, red LED at 11 to 16, buzzer at 19 to 26, 5 volt motor stage at rows 30 to 40. Bottom minus rail is ground, bottom plus rail is 5 volts tapped from the board VIN pin at row 62.">'+s.join("")+'</svg>';
+  document.getElementById("bb").innerHTML = svg;
+})();
+</script>
+<style>
+#bb .board{fill:var(--board); stroke:var(--board-edge); stroke-width:1;}
+#bb .hole{fill:var(--hole)}
+#bb .gap{fill:var(--board-edge); opacity:.55}
+#bb .railline{stroke-width:1.6}
+#bb .railline.pos{stroke:var(--pos)} #bb .railline.neg{stroke:var(--neg)}
+#bb .raillab{font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600; text-anchor:middle;}
+#bb .raillab.pos{fill:var(--pos)} #bb .raillab.neg{fill:var(--neg)}
+#bb .collab{font-family:"IBM Plex Mono",monospace; font-size:11px; fill:var(--ink-3); text-anchor:middle;}
+#bb .rowlab{font-family:"IBM Plex Mono",monospace; font-size:9.5px; fill:var(--ink-3); text-anchor:middle;}
+#bb .chip{fill:var(--chip); stroke:var(--chip-edge); stroke-width:1;}
+#bb .usb{fill:#9AA3AC; stroke:#6E767E; stroke-width:1;}
+#bb .usblab{font-family:"IBM Plex Mono",monospace; font-size:9px; fill:var(--ink-3);}
+#bb .pin{fill:#D9C97A; stroke:#8A7C3A; stroke-width:1;}
+#bb .pin-awake{fill:var(--z-awake); stroke:none} #bb .pin-warn{fill:var(--z-warn); stroke:none}
+#bb .pin-buzz{fill:var(--z-buzz); stroke:none} #bb .pin-motor{fill:var(--z-motor); stroke:none}
+#bb .pin-gnd{fill:var(--z-gnd); stroke:none} #bb .pin-v33{fill:var(--z-33); stroke:none}
+#bb .pin-pwr{fill:var(--z-pwr); stroke:none}
+#bb .silk{font-family:"IBM Plex Mono",monospace; font-size:8px; fill:var(--silk); text-anchor:start;}
+#bb .silk-awake{fill:var(--z-awake); font-weight:600} #bb .silk-warn{fill:var(--z-warn); font-weight:600}
+#bb .silk-buzz{fill:var(--z-buzz); font-weight:600} #bb .silk-motor{fill:var(--z-motor); font-weight:600}
+#bb .silk-gnd{fill:#E4EAF0; font-weight:600} #bb .silk-v33{fill:var(--z-33); font-weight:600}
+#bb .silk-pwr{fill:var(--z-pwr); font-weight:600}
+#bb .chiplab{font-family:"Archivo Narrow",sans-serif; font-size:13px; font-weight:700; fill:#E4EAF0; text-anchor:middle; letter-spacing:.08em;}
+#bb .chipsub{font-family:"IBM Plex Mono",monospace; font-size:9px; fill:#8894A0; text-anchor:middle;}
+#bb .occ{stroke:none}
+#bb .occ-awake{fill:var(--z-awake)} #bb .occ-warn{fill:var(--z-warn)}
+#bb .occ-buzz{fill:var(--z-buzz)} #bb .occ-motor{fill:var(--z-motor)}
+#bb .occ-gnd{fill:var(--z-gnd)} #bb .occ-v33{fill:var(--z-33)} #bb .occ-pwr{fill:var(--z-pwr)}
+#bb .lead{stroke:var(--ink-3); stroke-width:1.4}
+#bb .resbody{fill:#D8C9A8; stroke:#A8977A; stroke-width:.8}
+#bb .ledg{fill:var(--z-awake); opacity:.85; stroke:var(--z-awake); stroke-width:1}
+#bb .ledr{fill:var(--z-warn); opacity:.85; stroke:var(--z-warn); stroke-width:1}
+#bb .pkg{fill:#2E3239; stroke:#14171B; stroke-width:1}
+#bb .pkgtab{fill:#8E969F}
+#bb .pkgflat{stroke:#14171B; stroke-width:1.4}
+#bb .pkglab{font-family:"IBM Plex Mono",monospace; font-size:10px; font-weight:600; fill:#E4EAF0; text-anchor:middle;}
+#bb .diode{fill:#2E3239; stroke:#14171B; stroke-width:.8}
+#bb .tiny{font-family:"IBM Plex Mono",monospace; font-size:8px; fill:var(--ink-3); text-anchor:middle;}
+#bb .offb{fill:var(--surface-2); stroke:var(--line-2); stroke-width:1; stroke-dasharray:3 2;}
+#bb .offlab{font-family:"IBM Plex Mono",monospace; font-size:8.5px; fill:var(--ink-2); text-anchor:middle;}
+#bb .vacant{fill:none; stroke:var(--line-2); stroke-width:1.2; stroke-dasharray:5 4; opacity:.8}
+#bb .vacantlab{font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:600; letter-spacing:.12em; fill:var(--ink-3); text-anchor:middle;}
+#bb .band{stroke:none}
+#bb .wtag{stroke:none; opacity:.2}
+#bb .wtag-awake{fill:var(--z-awake)} #bb .wtag-warn{fill:var(--z-warn)}
+#bb .wtag-buzz{fill:var(--z-buzz)} #bb .wtag-motor{fill:var(--z-motor)}
+#bb .wtag-gnd{fill:var(--z-gnd)} #bb .wtag-v33{fill:var(--z-33)} #bb .wtag-pwr{fill:var(--z-pwr)}
+#bb .wtaglab{font-family:"IBM Plex Mono",monospace; font-size:9px; font-weight:600; fill:var(--ink-2); text-anchor:middle;}
+#bb .wlead{stroke-width:1.6; opacity:.55}
+#bb .wlead-awake{stroke:var(--z-awake)} #bb .wlead-warn{stroke:var(--z-warn)}
+#bb .wlead-buzz{stroke:var(--z-buzz)} #bb .wlead-motor{stroke:var(--z-motor)}
+#bb .wlead-gnd{stroke:var(--z-gnd)} #bb .wlead-v33{stroke:var(--z-33)} #bb .wlead-pwr{stroke:var(--z-pwr)}
+#bb .brk{fill:none; stroke-width:1.6; opacity:.65}
+#bb .brk-awake{stroke:var(--z-awake)} #bb .brk-warn{stroke:var(--z-warn)}
+#bb .brk-buzz{stroke:var(--z-buzz)} #bb .brk-motor{stroke:var(--z-motor)} #bb .brk-gnd{stroke:var(--z-gnd)}
+#bb .brklab{font-family:"IBM Plex Mono",monospace; font-size:9px; font-weight:600; letter-spacing:.1em; text-anchor:middle;}
+#bb .brklab-awake{fill:var(--z-awake)} #bb .brklab-warn{fill:var(--z-warn)}
+#bb .brklab-buzz{fill:var(--z-buzz)} #bb .brklab-motor{fill:var(--z-motor)} #bb .brklab-gnd{fill:var(--ink-3)}
+</style>
+
+</body></html>

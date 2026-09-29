@@ -1,7 +1,7 @@
-# AlertRide — Breadboard Map (Rev A)
+# AlertRide — Breadboard Map (Rev B)
 
 Anti-Sleep Driver Alert System · ESP32-WROOM-32 DevKit (38-pin)
-LED + buzzer build · no vibration motor · 3.3 V off USB only
+Two LEDs · buzzer · 5 V vibration motor · USB powered, no external pack
 
 ---
 
@@ -16,6 +16,8 @@ everything.
   the centre gap.
 - **Left header → column b**, rows 44–62. Reached from column a.
 - **Right header → column i**, rows 44–62. Reached from column j.
+  The working side: 3V3 at 44, GPIO25/26/27/14 at 52–55, GND at 57,
+  and **5V/VIN at 62** — where the motor rail comes from.
 - Columns **c d e f g h** in rows 44–62 sit *underneath* the module and
   are unusable.
 
@@ -97,7 +99,7 @@ so every signal this circuit uses sits on the **right** header.
 | 50 | GPIO32 | free |
 | 51 | GPIO33 | free |
 | 52 | GPIO25 | **W5** buzzer |
-| 53 | GPIO26 | reserved for motor — leave unwired |
+| 53 | GPIO26 | **W8** motor gate |
 | 54 | GPIO27 | **W3** red LED |
 | 55 | GPIO14 | **W1** green LED |
 | 56 | GPIO12 | strapping — **leave empty** |
@@ -106,7 +108,7 @@ so every signal this circuit uses sits on the **right** header.
 | 59 | GPIO9 · SD2 | flash — do not use |
 | 60 | GPIO10 · SD3 | flash — do not use |
 | 61 | GPIO11 · CMD | flash — do not use |
-| 62 | 5V · VIN | unused here |
+| 62 | 5V · VIN | **W13** motor supply |
 
 **Confirm three labels before wiring anything:** right header row 52 should
 read GPIO25, row 55 GPIO14, row 57 GND. If any disagrees, stop — wiring
@@ -118,12 +120,18 @@ board from starting. Row 56 (GPIO12) stays empty even though it sits in
 the middle of the cluster: a pull-up there at boot sets the flash to the
 wrong voltage and the board will not come up.
 
+**Row 62 on the right header is `5V/VIN`, not a GPIO** — drawing current
+out of it is what it is for. Do not confuse it with row 62 on the *left*
+header, which is the flash clock.
+
 ---
 
 ## 3. Circuit zones
 
 Four output stages in rows 3–40, all sharing one ground rail. Everything
-sits in columns f–j because that is the side the signal pins face.
+sits in columns f–j because that is the side the signal pins face. Three
+run at 3.3 V; the motor runs at 5 V behind a MOSFET, and no 5 V node ever
+touches a GPIO.
 
 ### Green LED — AWAKE · GPIO14
 | Item | Tie-points |
@@ -154,15 +162,31 @@ sits in columns f–j because that is the side the signal pins face.
 | BZ1 + | (26, g) |
 | W7 jumper | (44, j) 3V3 → (26, j) |
 
-### Motor — NOT in this build · GPIO26
-Rows 30–40 stay completely empty. The + rail is unused; there is no
-external supply. See section 6 for what comes out and where it goes back.
+### Motor — MOSFET low side · GPIO26
+| Item | Tie-points |
+| --- | --- |
+| W8 jumper | (53, j) → (30, j) |
+| R4 1 kΩ (gate series) | (30, h) → (33, h) |
+| R5 10 kΩ (gate pulldown) | (33, g) → (37, g) |
+| Q2 gate | (33, i) |
+| Q2 drain | (34, i) |
+| Q2 source | (35, i) |
+| W9 jumper | (37, j) → − rail @ 37 |
+| W10 jumper | (35, j) → − rail @ 35 |
+| D1 anode | (34, h) |
+| D1 cathode (**banded end**) | (40, h) |
+| M1 motor − | (34, f) |
+| M1 motor + | (40, f) |
+| W11 jumper | (40, j) → + rail @ 40 |
+| C1 100 µF | + rail @ 42 / − rail @ 42 |
+| W13 jumper | (62, j) 5V → + rail @ 62 |
 
 ---
 
 ## 4. Wire schedule
 
-Seven jumpers. No external supply, no battery pack, no + rail.
+Thirteen jumpers. No external supply, no battery pack — the bottom + rail
+is 5 V tapped from the board's own VIN pin.
 Colours are convention, not electrical requirement — but following them
 makes a fault obvious at a glance.
 
@@ -175,14 +199,23 @@ makes a fault obvious at a glance.
 | W5 | (52, j) | (19, j) | Yellow | GPIO25 → buzzer base resistor |
 | W6 | (23, j) | − rail @ 23 | Black | Q1 emitter → ground |
 | W7 | (44, j) | (26, j) | Orange | 3V3 → buzzer positive |
+| W8 | (53, j) | (30, j) | Blue | GPIO26 → MOSFET gate resistor |
+| W9 | (37, j) | − rail @ 37 | Black | R5 gate pulldown → ground |
+| W10 | (35, j) | − rail @ 35 | Black | Q2 source → ground |
+| W11 | (40, j) | + rail @ 40 | Red | Motor + → 5 V rail |
 | W12 | (57, j) | − rail @ 57 | Black | **ESP32 GND → common ground** |
+| W13 | (62, j) | + rail @ 62 | Red | **ESP32 5V/VIN → 5 V rail** |
 
 **Fit W12 before any signal wire.** Q1 compares the GPIO voltage against
-*its own* emitter. Without a shared ground the base sees an undefined
-voltage and the buzzer either never sounds or never stops.
+*its own* emitter, and Q2 against its own source. Without a shared ground
+either sees an undefined drive voltage and latches on or never turns on.
 
-Both rails above column a stay empty, and so does the bottom + rail. Only
-the bottom − rail is used.
+**Fit W13 last**, after the motor stage is built and checked. It is the
+only wire that puts 5 V on the board; until it goes in, a mistake in the
+motor stage cannot do anything.
+
+Both rails above column a stay empty. Only the bottom pair is used —
+− for ground, + for the 5 V motor rail.
 
 ---
 
@@ -200,6 +233,12 @@ crowded end.
 | R3 | 1 kΩ | (19, h) | (22, h) | brown black red gold |
 | Q1 | BC547 / 2N2222 | (21, i) (22, i) (23, i) | — | TO-92, flat face toward row 1 |
 | BZ1 | Active buzzer | (21, g) − | (26, g) + | Longer pin / + mark = positive |
+| R4 | 1 kΩ | (30, h) | (33, h) | brown black red gold |
+| R5 | 10 kΩ | (33, g) | (37, g) | brown black orange gold |
+| Q2 | IRLZ44N MOSFET | (33,i) (34,i) (35,i) | — | TO-220, tab toward row 63 — G D S |
+| D1 | 1N4007 flyback | (34, h) anode | (40, h) cathode | **Banded end at row 40**, the + side |
+| M1 | Vibration motor 5 V | (34, f) − | (40, f) + | Usually red = +, black = − |
+| C1 | 100 µF electrolytic | + rail @ 42 | − rail @ 42 | **Stripe leg is −** — backwards it can vent |
 
 ### Q1 leg order flips between the two parts you may have
 Hold it flat-face toward you, legs down, read left to right:
@@ -212,49 +251,93 @@ Hold it flat-face toward you, legs down, read left to right:
 Base stays at row 22 either way. Confirm against the datasheet for your
 exact marking before power.
 
-**Q1 is the only active device on the board.** If the buzzer sounds
-constantly the moment power is applied regardless of what you send, the
-transistor is in backwards — pull it, rotate it, retry before suspecting
-anything else. If it never sounds at all, **check W12 first**; a missing
-ground is by far the most common cause and looks identical to a dead
-transistor.
+**If the buzzer never sounds at all, check W12 first.** A missing ground
+is by far the most common cause and looks identical to a dead transistor.
+If it sounds constantly the moment power is applied regardless of what you
+send, Q1 is in backwards.
+
+### Q2 — IRLZ44N, TO-220
+
+Printed face toward you, metal tab pointing away toward row 63, read left
+to right: **G D S**. So (33, i) = gate, (34, i) = drain, (35, i) = source.
+**The tab is electrically the drain** — do not let it touch anything.
+
+**Why the IRLZ44N and not any MOSFET.** Its gate threshold is 1–2 V, so a
+3.3 V GPIO turns it fully on. A standard IRF540 needs ~10 V and would sit
+half-on, heating up and running the motor weakly. Look for the `L` in the
+part number; it means logic-level.
+
+**D1 backwards is the one mistake that kills the build instantly.**
+Reversed, it shorts the 5 V rail to the drain the moment W13 goes in. The
+banded (cathode) end goes to row 40, the + side. Check it twice.
+
+**R5 is not decoration.** Between reset and `pinMode()` GPIO26 floats, and
+a floating gate can hold enough charge to run the motor. R5 drains it, so
+the motor is off from the instant power is applied.
 
 ---
 
-## 6. What comes off the board
+## 6. Powering the 5 V motor
 
-Everything below is removed for this build. Rows 30–40 end up empty, and
-so does the external supply. **Keep all of it** — these coordinates are
-what you put back when a new motor arrives.
+The motor needs 5 V; the ESP32 needs 3.3 V logic. Rev B resolves that
+without a second supply, which is what kept Rev A safe.
 
-| Pull | What it is | From | Why |
+**The 5 V comes from the board, not a pack.** Pin `5V/VIN` at (62, i) is
+USB 5 V passed through the DevKit. W13 carries it to the bottom + rail,
+and W11 feeds the motor from there.
+
+**Why that matters.** A battery pack reintroduces both hazards Rev A
+removed: a 5 V node that can back-feed a GPIO, and a supply whose ground
+floats relative to the board. Sharing USB keeps one supply and one ground,
+so neither can happen.
+
+**No 5 V ever reaches a GPIO.** GPIO26 only drives the MOSFET *gate*,
+which is isolated from drain and source. The 5 V lives entirely on the +
+rail, the motor, and Q2's drain.
+
+### Brownout is the real risk now, not damage
+
+Motor inrush sags the 5 V rail. Sag far enough and the ESP32 resets — the
+alert device reboots at the exact moment it is supposed to be alerting,
+and nothing on screen tells you it happened.
+
+**C1, 100 µF across the bottom rails at position 42, is the fix.** It
+supplies the inrush locally so the rail does not dip. Not optional; Rev A
+had no bulk capacitance because it had no motor. Stripe leg (−) to the
+− rail.
+
+**Symptom to watch for:** if the board prints `AlertRide ready` again in
+the middle of a DROWSY test, that is a reset, not a glitch. Check C1 is
+seated and its polarity is right.
+
+### Current budget
+
+| Load | Rail | Draw | Note |
 | --- | --- | --- | --- |
-| W8 | Jumper, blue | (53, j) → (30, j) | Fed GPIO26 to the gate |
-| R4 | 1 kΩ | (30, h) → (33, h) | Gate series resistor |
-| R5 | 10 kΩ | (33, g) → (37, g) | Gate pulldown |
-| Q2 | IRLZ44N MOSFET | (33, i) (34, i) (35, i) | Nothing left to switch |
-| D1 | Flyback diode | (34, h) → (40, h) | Only needed across an inductive load |
-| W9 | Jumper, black | (37, j) → − rail | Pulldown ground |
-| W10 | Jumper, black | (35, j) → − rail | MOSFET source ground |
-| W11 | Jumper, red | (40, j) → + rail | Motor supply feed |
-| M1 | Vibration motor | (34, f) (40, f) | Lead is broken |
-| P1 | Pack +5 V lead | + rail @ 63 | No external supply at all now |
-| P2 | Pack GND lead | − rail @ 62 | Nothing left to share a ground with |
+| ESP32, Wi-Fi off | 3.3 V | ~45 mA | Regulated on the DevKit from the same USB 5 V |
+| One LED + its 220 Ω | 3.3 V | ~6 mA | Only one LED is ever lit at a time |
+| Active buzzer | 3.3 V | ~30 mA | Through Q1 |
+| Motor, running | 5 V | ~100 mA | Typical small ERM — **confirm against your part** |
+| Motor, stall / inrush | 5 V | ~200 mA | Brief; this is what C1 absorbs |
+| **Worst case, all on** | — | **~300 mA** | Against a USB 2.0 port's 500 mA |
 
-**This build is safer than the full one, not just smaller.** The two ways
-to damage an ESP32 here were back-feeding 5 V into a GPIO and letting the
-motor supply float relative to the board. Both leave with the motor.
-Everything remaining runs at 3.3 V off USB.
+**Measure your motor's stall current before you trust this table.** The
+100 mA figure is typical for a small coin or bar ERM vibration motor. If
+yours is a geared DC motor, or anything drawing **more than about 350 mA
+stalled**, USB cannot feed it alongside the ESP32 and you do need a
+separate pack — in which case tie its ground to the − rail and never let
+its + reach a GPIO.
 
-**Leave GPIO26 unwired at (53, j).** The firmware no longer drives it, and
-a clear row means the motor stage drops straight back in with no rework.
+To measure: put a multimeter in series on the 5 V lead, run the motor,
+then hold the shaft or weight still and read the peak.
 
 ---
 
 ## 7. Firmware
 
 Arduino IDE board: **ESP32 Dev Module**. Upload speed 921600, flash
-frequency 80 MHz, monitor 115200. Sketch: `firmware/esp32_alert/esp32_alert.ino`.
+frequency 80 MHz, monitor 115200.
+Sketch: [`firmware/esp32_alert/esp32_alert.ino`](../firmware/esp32_alert/esp32_alert.ino).
 
 Serial protocol, one character per command:
 
@@ -266,16 +349,38 @@ Serial protocol, one character per command:
 | `S` | STOPPED | off | off | silent |
 | `?` | — | — | — | replies `AlertRide ready` |
 
-**DROWSY blinks the red LED** because the motor was what separated
-"warning" from "wake up". With it gone, solid red plus a tone looks
-identical in both states, so escalation moves to the blink.
+Motor behaviour, the fourth column the table above leaves out:
 
-**Link-timeout failsafe:** `D` holds a continuous tone. If the host
-crashes mid-alert, nothing sends `S` and the buzzer runs until you pull
-the cable. Three seconds of silence from the host resets to STOPPED and
-prints `LINK_LOST`. Because the host only transmits on a state *change*, a
-long steady DROWSY would trip that too — so the host re-sends the current
-state once a second as a keepalive.
+| Char | Motor |
+| --- | --- |
+| `A` | off |
+| `W` | 400 ms pulse, re-triggered by each 1 Hz keepalive → repeating tap |
+| `D` | latched on until the state changes |
+| `S` | off |
+
+**Tap versus continuous is the point.** WARNING pulses the motor; DROWSY
+latches it. That is a distinction you feel without looking, which is what
+a haptic channel is for in a driver alert.
+
+**DROWSY also blinks the red LED.** Rev A added that to replace the
+missing motor; it stays, because it is the channel a demo camera can
+record. Solid red = WARNING, 4 Hz blink = DROWSY.
+
+**Link-timeout failsafe, and it matters more now.** `D` latches both the
+tone and the motor. If the host crashes mid-alert, nothing sends `S` — and
+an unattended motor running flat out is a worse failure than a stuck
+buzzer. Three seconds of host silence clears everything and prints
+`LINK_LOST`. Because the host only transmits on a state *change*, a long
+steady DROWSY would trip that too, so the host re-sends the current state
+once a second as a keepalive.
+
+**Non-blocking on purpose.** The motor pulse ends via a `millis()`
+deadline rather than `delay()`, so a 400 ms buzz never blocks the serial
+read — a `delay()` there would make the failsafe itself unreliable.
+
+**If `tone()` will not compile**, your ESP32 Arduino core is older than
+3.x, where `tone()` was added. Update the core in Boards Manager, or drive
+the buzzer with `ledcWriteTone()`. Nothing else is core-version sensitive.
 
 **Boot self-test:** each output fires once at startup, so a dead stage
 shows up then rather than halfway through a demo.
@@ -301,19 +406,31 @@ something fails, you know what caused it.
 7. **Buzzer stage** — R3, Q1, BZ1, W5, W6, W7. `W` = short beep, `D` =
    steady tone, `S` = silence. Constant buzz regardless of command means
    Q1 is in backwards.
-8. **Close the Serial Monitor**, run the hardware test script. It drives
-   every state and prints the replies, including the LINK_LOST failsafe.
-   Whole hardware check in one command, no camera.
-9. **Run the detection script.** Test in order: eyes open, one normal
-   blink, a deliberate 1-second closure, a 3-second closure, then cover
-   the camera entirely.
-10. **Calibrate the threshold.** Watch the on-screen EAR open and shut,
+8. **Motor stage, dry** — R4, R5, Q2, D1, M1, W8, W9, W10, W11, C1.
+   **Leave W13 out.** With no 5 V on the rail nothing can move yet, which
+   is the point: check D1's band is at row 40, C1's stripe is on the −
+   rail, and Q2 reads G-D-S into rows 33-34-35.
+9. **Fit W13** from (62, j) to the + rail. This is the moment 5 V enters
+   the board. The motor must be still — if it runs the instant you seat
+   this wire, pull it out and check R5 and Q2's orientation.
+10. **Test the motor** — `W` for a pulse, `D` for continuous, `S` to stop.
+    If the board reprints `AlertRide ready` when the motor starts, the
+    5 V rail is browning out: check C1, then measure stall current.
+11. **Close the Serial Monitor**, run the hardware test script. It drives
+    every state and prints the replies, including the LINK_LOST failsafe.
+    Whole hardware check in one command, no camera.
+12. **Run the detection script.** Test in order: eyes open, one normal
+    blink, a deliberate 1-second closure, a 3-second closure, then cover
+    the camera entirely.
+13. **Calibrate the threshold.** Watch the on-screen EAR open and shut,
     set the threshold midway. The 0.25 default is a starting point, not a
     correct value for your face, glasses or lighting.
-11. **Log the run** — trials, false alarms, missed detections, lighting,
+14. **Log the run** — trials, false alarms, missed detections, lighting,
     glasses on or off. Stationary only.
+15. **Tape the motor down.** A loose vibration motor walks off the bench
+    and drags the breadboard wires out with it.
 
 ---
 
 AlertRide — early-warning prototype. **Not a certified vehicle safety or
-medical device. Demonstrate stationary, never in a moving vehicle.** Rev A
+medical device. Demonstrate stationary, never in a moving vehicle.** Rev B
